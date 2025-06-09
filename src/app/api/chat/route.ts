@@ -54,21 +54,31 @@ export async function POST(req: Request) {
     // get the last message from the client:
     // const { message_, id_ } = await req.json();
     // console.log(message_)
-    let body: any;
+    let body: unknown;
     try { // works for tutorial 2 format
         console.log("try")
         body = await req.json();
+        if (
+            typeof body !== "object" ||
+            body === null ||
+            !("message" in body) ||
+            !("id" in body) ||
+            typeof (body as any).id !== "string" ||
+            typeof (body as any).message !== "object"
+        ) {
+            throw new Error("Invalid request body");
+        }
         const { message, id } = body as { message: Message; id: string };
         // const { message, id } = await req.json() as { message: Message; id: string };
         console.log(typeof message, message)
         if (typeof id !== "string") {
             throw new Error("Invalid id")
-            return new Response("Invalid id", { status: 400 });
+            // return new Response("Invalid id", { status: 400 });
         }
 
         if (typeof message !== "object") {
             throw new Error("Invalid message")
-            return new Response("Invalid message", { status: 400 });
+            // return new Response("Invalid message", { status: 400 });
 
         }
 
@@ -116,7 +126,15 @@ export async function POST(req: Request) {
 
     } catch (error) { // works for tutorial 1 format
         console.log("catch")
-        const messages = Array.isArray(body?.messages) ? body.messages : [];
+        console.error(error);
+        // const messages = Array.isArray(body?.messages) ? body.messages : [];
+        const messages =
+            typeof body === "object" &&
+                body !== null &&
+                "messages" in body &&
+                Array.isArray((body as any).messages)
+                ? (body as { messages: Message[] }).messages
+                : [];
         // const { messages } = await req.json() as { messages: CoreMessage[] }
         console.log(typeof messages, messages)
         const result = streamText({

@@ -87,7 +87,12 @@ export default function Chat({
                                                     case 'call':
                                                         return (
                                                             <div key={callId}>
-                                                                {part.toolInvocation.args.message}
+                                                                {/* {part.toolInvocation.args.message} */}
+                                                                {typeof part.toolInvocation.args === "object" &&
+                                                                    part.toolInvocation.args !== null &&
+                                                                    "message" in part.toolInvocation.args
+                                                                    ? (part.toolInvocation.args as { message: string }).message
+                                                                    : null}
                                                                 <div>
                                                                     <button
                                                                         onClick={() =>
@@ -150,13 +155,22 @@ export default function Chat({
                                                         return (
                                                             <div key={callId}>
                                                                 Getting weather information for{' '}
-                                                                {part.toolInvocation.args.city}...
+                                                                {typeof part.toolInvocation.args === "object" &&
+                                                                    part.toolInvocation.args !== null &&
+                                                                    "city" in part.toolInvocation.args
+                                                                    ? (part.toolInvocation.args as { city: string }).city
+                                                                    : null}...
+                                                                {/* {part.toolInvocation.args.city}... */}
                                                             </div>
                                                         );
                                                     case 'result':
                                                         return (
                                                             <div key={callId}>
-                                                                Weather in {part.toolInvocation.args.city}:{' '}
+                                                                Weather in {typeof part.toolInvocation.args === "object" &&
+                                                                    part.toolInvocation.args !== null &&
+                                                                    "city" in part.toolInvocation.args
+                                                                    ? (part.toolInvocation.args as { city: string }).city
+                                                                    : null}:{' '}
                                                                 {part.toolInvocation.result}
                                                             </div>
                                                         );
