@@ -5,13 +5,12 @@ import { streamText, type CoreMessage } from 'ai';
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
-    const { messages } = await req.json();
-    const typedMessages = messages as CoreMessage[];
+    const { messages } = await req.json() as { messages: CoreMessage[] }
     const result = streamText({
         // model: openai('gpt-4-turbo'),
         model: openai('gpt-4o'),
         system: 'You are a helpful assistant.',
-        messages: typedMessages,
+        messages: messages,
     });
 
     return result.toDataStreamResponse({
