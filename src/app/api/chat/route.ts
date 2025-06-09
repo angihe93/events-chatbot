@@ -1,5 +1,5 @@
 import { openai } from '@ai-sdk/openai';
-import { streamText, type CoreMessage, appendResponseMessages, appendClientMessage, createIdGenerator } from 'ai';
+import { streamText, type CoreMessage, appendResponseMessages, appendClientMessage, createIdGenerator, type Message } from 'ai';
 import { loadChat, saveChat } from '../../../tools/chat-store';
 
 // Allow streaming responses up to 30 seconds
@@ -8,7 +8,11 @@ export const maxDuration = 30;
 export async function POST(req: Request) {
     // const { messages, id } = await req.json() //as { messages: CoreMessage[] }
     // get the last message from the client:
-    const { message, id } = await req.json();
+    const { message, id } = await req.json() as { message: Message; id: string };
+    if (typeof id !== "string")
+        return new Response("Invalid id", { status: 400 });
+    if (typeof message !== "object")
+        return new Response("Invalid message", { status: 400 });
 
     // load the previous messages from the server:
     const previousMessages = await loadChat(id);
@@ -17,7 +21,7 @@ export async function POST(req: Request) {
     const messages = appendClientMessage({
         messages: previousMessages,
         message,
-    });
+    }) as Message[];
 
     const result = streamText({
         // model: openai('gpt-4-turbo'),
@@ -42,7 +46,7 @@ export async function POST(req: Request) {
 
     // consume the stream to ensure it runs to completion & triggers onFinish
     // even when the client response is aborted:
-    result.consumeStream(); // no await
+    void result.consumeStream(); // no await
 
     return result.toDataStreamResponse({
         sendReasoning: true, // Some models such as as DeepSeek deepseek-reasoner and Anthropic claude-3-7-sonnet-20250219 support reasoning tokens
