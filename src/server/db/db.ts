@@ -34,9 +34,14 @@ export async function saveChatDB(id: string, messages: Message[]) {
         }
         try {
             await db.insert(chat_messages).values(message);
-        } catch (error: any) {
+        } catch (error: unknown) {
             // Check for duplicate primary key error (Postgres: '23505')
-            if (error.code === '23505') {
+            if (
+                typeof error === "object" &&
+                error !== null &&
+                "code" in error &&
+                (error as { code?: unknown }).code === "23505"
+            ) {
                 continue;
             }
             throw error;

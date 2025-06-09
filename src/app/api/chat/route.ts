@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     const messages = appendClientMessage({
         messages: previousMessages,
         message,
-    }) as Message[];
+    });
 
     const result = streamText({
         // model: openai('gpt-4-turbo'),
