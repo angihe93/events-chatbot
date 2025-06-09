@@ -63,8 +63,8 @@ export async function POST(req: Request) {
             body === null ||
             !("message" in body) ||
             !("id" in body) ||
-            typeof (body as any).id !== "string" ||
-            typeof (body as any).message !== "object"
+            typeof (body as Record<string, unknown>).id !== "string" ||
+            typeof (body as Record<string, unknown>).message !== "object"
         ) {
             throw new Error("Invalid request body");
         }
@@ -132,7 +132,7 @@ export async function POST(req: Request) {
             typeof body === "object" &&
                 body !== null &&
                 "messages" in body &&
-                Array.isArray((body as any).messages)
+                Array.isArray((body as Record<string, unknown>).messages)
                 ? (body as { messages: Message[] }).messages
                 : [];
         // const { messages } = await req.json() as { messages: CoreMessage[] }
