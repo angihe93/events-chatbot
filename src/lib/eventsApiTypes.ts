@@ -56,14 +56,14 @@ export type Event = {
 };
 
 export enum DateType {
-    Sankofa_Display,
-    today,
-    tomorrow,
-    week,
-    weekend,
-    next_week,
-    month,
-    next_month
+    any = "any",
+    today = "today",
+    tomorrow = "tomorrow",
+    week = "week",
+    weekend = "weekend",
+    next_week = "next_week",
+    month = "month",
+    next_month = "next_month"
 }
 
 export type EventSearchParams = {

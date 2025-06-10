@@ -29,7 +29,15 @@ const tools = {
             is_virtual: z.boolean().optional(),
         }),
         execute: async (parameters: EventSearchParams) => {
-            return await getEvents(parameters);
+            // console.log("searchEvents params", parameters)
+            const sendParams = {
+                ...parameters,
+                date: parameters.date !== undefined ? DateType[parameters.date] : undefined
+            };
+            console.log("searchEvents paramsToSend", sendParams)
+            const result = await getEvents(parameters)
+            return { ...result, data: result.data.map(event => ({ name: event.name, description: event.description, date_human_readable: event.date_human_readable, link: event.link })) }
+            // return await getEvents(parameters);
         }
     },
     // client-side tool that starts user interaction:

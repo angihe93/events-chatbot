@@ -206,6 +206,19 @@ export default function Chat({
                                                     break;
                                                 }
                                                 case 'getEvents': {
+                                                    switch (part.toolInvocation.state) {
+                                                        case 'partial-call':
+                                                            return (
+                                                                <div key={callId}>
+                                                                    Getting events info for {typeof part.toolInvocation.args === "object" &&
+                                                                        part.toolInvocation.args !== null &&
+                                                                        "query" in part.toolInvocation.args
+                                                                        ? (part.toolInvocation.args as { query: string }).query
+                                                                        : null}:{' '}...
+                                                                    {/* {part.toolInvocation.query} */}
+                                                                </div>
+                                                            );
+                                                    }
                                                     return (
                                                         <div key={callId}>
                                                             <p>{part.toolInvocation.args}</p>
@@ -216,14 +229,14 @@ export default function Chat({
                                                     );
                                                 }
                                             }
-                                            switch (part.toolInvocation.state) {
-                                                case 'partial-call':
-                                                    return <>render partial tool call</>;
-                                                case 'call':
-                                                    return <>render full tool call</>;
-                                                case 'result':
-                                                    return <>render tool result</>;
-                                            }
+                                            // switch (part.toolInvocation.state) {
+                                            //     case 'partial-call':
+                                            //         return <>render partial tool call</>;
+                                            //     case 'call':
+                                            //         return <>render full tool call</>;
+                                            //     case 'result':
+                                            //         return <>render tool result</>;
+                                            // }
                                         }
                                         default:
                                             return null;
