@@ -2,12 +2,20 @@
 
 import { createIdGenerator } from 'ai';
 import { type Message, useChat } from '@ai-sdk/react';
+import { deleteMessage } from '~/lib/data';
+import { useEffect, useState } from 'react';
+
+// Simple Spinner component, can replace later
+function Spinner() {
+    return <span>Loading...</span>;
+}
 
 export default function Chat({
     id,
     initialMessages,
 }: { id?: string | undefined; initialMessages?: Message[] } = {}) {
-    const { input, handleInputChange, handleSubmit, messages, addToolResult } = useChat({
+
+    const { input, handleInputChange, handleSubmit, messages, setMessages, addToolResult, status, stop } = useChat({
         id, // use the provided chat ID
         initialMessages, // initial messages if provided
         sendExtraMessageFields: true, // send id and createdAt for each message
@@ -187,11 +195,24 @@ export default function Chat({
                                                 return <>render tool result</>;
                                         }
                                     }
+                                    default:
+                                        return null;
                                 }
                             })}
+                            <button onClick={() => { deleteMessage(message.id); setMessages(messages.filter(m => m.id !== message.id)) }} className='p-1'>Delete</button>
                             <br />
                         </div>
                     ))}
+
+                    {/* when is saveChat called? if stop is clicked when message is generating would user prompt be saved? */}
+                    {(status === 'submitted' || status === 'streaming') && (
+                        <div>
+                            {status === 'submitted' && <Spinner />}
+                            <button type="button" onClick={() => stop()}>
+                                Stop
+                            </button>
+                        </div>
+                    )}
 
                     <form onSubmit={handleSubmit}>
                         <input value={input} onChange={handleInputChange} className='border' />
