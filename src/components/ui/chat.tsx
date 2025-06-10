@@ -51,7 +51,7 @@ export default function Chat({
             console.log(lastMsgId)
             try {
                 await deleteMessage(lastMsgId)
-                reload()
+                await reload()
             } catch (error) { } finally { }
         }
     }
@@ -215,7 +215,8 @@ export default function Chat({
                                             return null;
                                     }
                                 })}
-                                <button onClick={() => { void deleteMessage(message.id); setMessages(messages.filter(m => m.id !== message.id)) }} className='p-1'>Delete</button>
+                                {status === 'ready' &&
+                                    <button onClick={() => { void deleteMessage(message.id); setMessages(messages.filter(m => m.id !== message.id)) }} className='p-1'>Delete</button>}
                                 <br />
                             </div>
                         ))}
@@ -241,7 +242,7 @@ export default function Chat({
                     )}
 
                     {/* {(status === 'ready') && <button onClick={() => { setLastMsgId(messages[messages.length - 1]?.id); reload() }} disabled={!(status === 'ready')}>Regenerate</button>} */}
-                    {(status === 'ready') && <button onClick={() => { handleReload() }} disabled={!(status === 'ready')}>Regenerate</button>}
+                    {(status === 'ready') && <button onClick={async () => { try { await handleReload() } catch (error) { } finally { } }} disabled={!(status === 'ready')}>Regenerate</button>}
 
                     <form onSubmit={handleSubmit}>
                         <input value={input} onChange={handleInputChange} className='border' />
