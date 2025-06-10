@@ -6,6 +6,7 @@ import { DateType, type EventSearchParams } from '~/lib/eventsApiTypes';
 import getEvents from '~/lib/eventsApi';
 import { createResource } from '~/lib/actions/resources';
 import { type NewResourceParams, insertResourceSchema } from "~/server/db/schema";
+import { findRelevantContent } from '~/lib/ai/embedding';
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
@@ -64,7 +65,14 @@ const tools = {
                 .describe('the content or resource to add to the knowledge base'),
         }),
         execute: async ({ content }: { content: string }) => createResource({ content }),
-    }
+    },
+    getInformation: {
+        description: `get information from your knowledge base to answer questions.`,
+        parameters: z.object({
+            question: z.string().describe('the users question'),
+        }),
+        execute: async ({ question }: { question: string }) => findRelevantContent(question),
+    },
 }
 
 
