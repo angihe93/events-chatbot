@@ -2,6 +2,8 @@ import { openai } from '@ai-sdk/openai';
 import { streamText, type CoreMessage, appendResponseMessages, appendClientMessage, createIdGenerator, type Message } from 'ai';
 import { loadChat, saveChat } from '../../../tools/chat-store';
 import { z } from 'zod'
+import { DateType, type EventSearchParams } from '~/lib/eventsApiTypes';
+import getEvents from '~/lib/eventsApi';
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
@@ -17,6 +19,18 @@ const tools = {
                 Math.floor(Math.random() * weatherOptions.length)
             ];
         },
+    },
+    searchEvents: {
+        description: 'call the getEvents API and return results to the user',
+        parameters: z.object({
+            start: z.number().optional(),
+            query: z.string(),
+            date: z.nativeEnum(DateType).optional(),
+            is_virtual: z.boolean().optional(),
+        }),
+        execute: async (parameters: EventSearchParams) => {
+            return await getEvents(parameters);
+        }
     },
     // client-side tool that starts user interaction:
     askForConfirmation: {

@@ -4,6 +4,7 @@ import { createIdGenerator } from 'ai';
 import { type Message, useChat } from '@ai-sdk/react';
 import { deleteMessage } from '~/lib/data';
 import { useEffect, useState } from 'react';
+import getEvents from '~/lib/eventsApi';
 
 // Simple Spinner component, can replace later
 function Spinner() {
@@ -55,6 +56,9 @@ export default function Chat({
             } catch (error) { } finally { }
         }
     }
+
+    // const eventSearchParams = { query: "food festivals brooklyn" }
+    // console.log(getEvents(eventSearchParams))
 
     // simplified rendering code, extend as needed:
     // return (
@@ -200,6 +204,16 @@ export default function Chat({
                                                             );
                                                     }
                                                     break;
+                                                }
+                                                case 'getEvents': {
+                                                    return (
+                                                        <div key={callId}>
+                                                            <p>{part.toolInvocation.args}</p>
+                                                            {part.toolInvocation.state === 'result' && (
+                                                                <p>{part.toolInvocation.result}</p>
+                                                            )}
+                                                        </div>
+                                                    );
                                                 }
                                             }
                                             switch (part.toolInvocation.state) {
