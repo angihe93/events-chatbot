@@ -4,6 +4,8 @@
 import { sql } from "drizzle-orm";
 import { index, pgTableCreator, jsonb, text, foreignKey, vector } from "drizzle-orm/pg-core";
 import { nanoid } from "~/lib/utils";
+import { createSelectSchema } from "drizzle-zod";
+import { z } from "zod";
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -60,7 +62,7 @@ export const chat_messages = createTable(
 export const resources = createTable(
   "resource",
   (d) => ({
-    id: d.varchar({ length: 256 }).primaryKey(),
+    id: d.varchar({ length: 256 }).primaryKey().$defaultFn(() => nanoid()),
     content: d.text().notNull(),
     createdAt: d
       .timestamp({ withTimezone: true })
@@ -86,3 +88,21 @@ export const embeddings = createTable(
     index('embeddingIndex').using('hnsw', t.embedding.op('vector_cosine_ops')),
   ]
 )
+
+// Schema for resources - used to validate API requests
+// export const insertResourceSchema = z.object({
+//   content: z.string(), // check
+// });
+export const insertResourceSchema = createSelectSchema(resources)
+  .extend({})
+  .omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+  });
+
+// Type for resources - used to type API request params and within Components
+// export type NewResourceParams = z.infer<typeof insertResourceSchema>;
+export type NewResourceParams = {
+  content: string; // check
+};
