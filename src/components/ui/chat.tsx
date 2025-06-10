@@ -49,8 +49,10 @@ export default function Chat({
         const lastMsgId = messages[messages.length - 1]?.id
         if (lastMsgId) {
             console.log(lastMsgId)
-            await deleteMessage(lastMsgId)
-            reload()
+            try {
+                await deleteMessage(lastMsgId)
+                reload()
+            } catch (error) { } finally { }
         }
     }
 
@@ -213,7 +215,7 @@ export default function Chat({
                                             return null;
                                     }
                                 })}
-                                <button onClick={() => { deleteMessage(message.id); setMessages(messages.filter(m => m.id !== message.id)) }} className='p-1'>Delete</button>
+                                <button onClick={() => { void deleteMessage(message.id); setMessages(messages.filter(m => m.id !== message.id)) }} className='p-1'>Delete</button>
                                 <br />
                             </div>
                         ))}
