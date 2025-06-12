@@ -4,6 +4,11 @@ import { db } from "~/server/db"
 import { nextCookies } from "better-auth/next-js"
 import { schema } from "~/server/db/schema"
 
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET
+if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET)
+    throw new Error("GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET is not set. Set them to use Google auth in better auth")
+
 export const auth = betterAuth({
     database: drizzleAdapter(db, {
         provider: "pg",
@@ -12,12 +17,16 @@ export const auth = betterAuth({
     emailAndPassword: {
         enabled: true
     },
-    // socialProviders: { 
-    //     github: { 
-    //        clientId: process.env.GITHUB_CLIENT_ID as string, 
-    //        clientSecret: process.env.GITHUB_CLIENT_SECRET as string, 
-    //     }, 
-    // }, 
+    socialProviders: {
+        google: {
+            clientId: GOOGLE_CLIENT_ID as string,
+            clientSecret: GOOGLE_CLIENT_SECRET as string,
+        },
+        //     github: { 
+        //        clientId: process.env.GITHUB_CLIENT_ID as string, 
+        //        clientSecret: process.env.GITHUB_CLIENT_SECRET as string, 
+        //     }, 
+    },
 
     // the nextCookies plugin will automatically set cookies for you whenever a Set-Cookie header is present in the response
     plugins: [nextCookies()] // make sure this is the last plugin in the array
