@@ -31,6 +31,7 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { Loader2 } from "lucide-react"
 import { createAuthClient } from "better-auth/client"
+import Link from "next/link"
 
 const authClient = createAuthClient()
 
@@ -162,9 +163,9 @@ export function LoginForm({
                 </div>
                 <div className="text-center text-sm">
                   Don&apos;t have an account?{" "}
-                  <a href="#" className="underline underline-offset-4">
-                    Sign up
-                  </a>
+                  <Link href="/signup" className="underline underline-offset-4">
+                    Sign Up
+                  </Link>
                 </div>
               </div>
             </form>
