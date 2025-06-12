@@ -176,3 +176,10 @@ export const verifications = createTable(
       .default(sql`CURRENT_TIMESTAMP`),
   })
 )
+
+export const schema = {
+  user: users, // <-- alias to match expected model name
+  session: sessions,
+  account: accounts,
+  verification: verifications
+}
