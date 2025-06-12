@@ -3,6 +3,7 @@
 import { authClient } from "~/lib/auth-client"
 import { Button } from "./ui/button"
 import { useRouter } from "next/navigation"
+import { LogOut } from "lucide-react"
 
 export function Logout() {
     const router = useRouter()
@@ -13,7 +14,7 @@ export function Logout() {
 
     return (
         <Button onClick={handleLogout}>
-            Logout
+            Logout <LogOut className="size-4" />
         </Button>
     )
 }
