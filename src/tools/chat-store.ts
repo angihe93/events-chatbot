@@ -49,22 +49,17 @@ export async function findOrCreateChat(): Promise<string> {
     console.log('==================================');
 
     const userId = session.user.id
-    const chatId = findChatDB(userId)
+    const chatId = await findChatDB(userId)
 
-    if (!chatId || chatId === null) {
+    if (typeof chatId !== 'string') {
         const id = generateId(); // generate a unique chat ID
         const chat = await createChatDB(id, userId)
         console.log("no chat for user, created chat", chat.id)
         return chat.id
-    } else if (typeof chatId === 'string') {
+    }
+    else {
         console.log("found chat for user, chatId", chatId)
         return chatId
-    } else {
-        // Fallback in case chatId is not string or is null
-        const id = generateId();
-        const chat = await createChatDB(id, userId)
-        console.log("no chat for user, created chat", chat.id)
-        return chat.id
     }
 }
 
