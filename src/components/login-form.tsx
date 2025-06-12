@@ -81,6 +81,14 @@ export function LoginForm({
     })
   }
 
+  const signInWithGithub = async () => {
+    await authClient.signIn.social({
+      provider: "github",
+      callbackURL: "/dashboard"
+    })
+  }
+
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
@@ -104,6 +112,10 @@ export function LoginForm({
                       />
                     </svg>
                     Login with Google
+                  </Button>
+                  <Button variant="outline" className="w-full" onClick={signInWithGithub}>
+                    <img src="github-mark.svg" alt="GitHub logo" className="h-5 w-5 inline" />
+                    Login with GitHub
                   </Button>
                 </div>
                 <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
