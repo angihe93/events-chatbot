@@ -5,6 +5,7 @@ import { useState } from 'react';
 import Chat from '~/components/ui/chat';
 import { api } from "~/trpc/react"
 
+
 // Simple Spinner component, can replace later
 function Spinner() {
     return <span>Loading...</span>;
@@ -58,13 +59,17 @@ export default function Page() {
 
     return (
         <>
-            <main className="flex min-h-screen flex-col items-center justify-center ">
+            <main className="flex min-h-screen flex-col items-center justify-center gap-4 mx-25 my-25">
                 <h3>{trpcHelloResult.data?.greeting}</h3>
-                <button onClick={() => createChat.mutate()} disabled={createChat.isPending}>Start chatting</button>
+                <button onClick={() => createChat.mutate()} disabled={createChat.isPending}>
+                    Start chatting
+                </button>
 
-                <p>Continue a previous chat:</p>
-                {chatIds.data?.map((i) => <button key={i} onClick={() => setSelectedChat(i)}> {i} </button>)}
-                {/* || createdChat */}
+                <p>or continue a previous chat:</p>
+                <div className="max-h-48 overflow-y-auto w-full flex flex-col gap-2 border">
+                    {chatIds.data?.map((i) => <button key={i} onClick={() => setSelectedChat(i)}> {i} </button>)}
+                </div>
+
                 {selectedChat && (
                     isChatLoading ? (
                         <div>Loading chat...</div>
