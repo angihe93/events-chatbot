@@ -26,6 +26,7 @@ import { db } from "~/server/db";
  * @see https://trpc.io/docs/server/context
  */
 export const createTRPCContext = async (opts: { headers: Headers }) => {
+  // from assignment, hook into better auth and get session user to put into trpc context
   const authSession = await auth.api.getSession({
     headers: opts.headers
   })
@@ -110,6 +111,7 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
  */
 export const publicProcedure = t.procedure.use(timingMiddleware);
 
+// added protectedProcedure
 export const protectedProcedure = t.procedure
   .use(timingMiddleware)
   .use(({ ctx, next }) => {

@@ -38,11 +38,25 @@ export default function Page() {
 
     // test hello procedure in src/server/api/routers/post.ts
     const trpcHelloResult = api.post.hello.useQuery({ text: 'world' })
+    const chatIds = api.chat.list.useQuery()
+
+    // referencing post.tsx
+    const createChat = api.chat.create.useMutation({
+        onSuccess: async () => {
+            //   await utils.post.invalidate();
+            //   setName("");
+            console.log(`created chat`)
+        },
+    });
 
     return (
         <>
             <main className="flex min-h-screen flex-col items-center justify-center ">
-                <h3>from TRPC call: {trpcHelloResult.data?.greeting}</h3>
+                <h3>{trpcHelloResult.data?.greeting}</h3>
+                <button onClick={() => createChat.mutate()} disabled={createChat.isPending}>Start chatting</button>
+
+                <p>Continue a previous chat:</p>
+                {chatIds.data?.map((i) => <p key={i}>{i}</p>)}
                 <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
                     {messages.map(message => (
                         <div key={message.id}>
