@@ -1,9 +1,10 @@
 import { z } from "zod";
 
 import { createTRPCRouter, publicProcedure, protectedProcedure } from "~/server/api/trpc";
-import { getChatsDB } from "~/server/db/db";
+import { getChatsDB, loadChatDB } from "~/server/db/db";
 import { chats } from "~/server/db/schema";
 import { generateId } from 'ai'
+import { type Message } from '@ai-sdk/react'
 
 // referencing post.ts
 export const chatRouter = createTRPCRouter({
@@ -26,4 +27,20 @@ export const chatRouter = createTRPCRouter({
             })
             return id
         }),
+    load: protectedProcedure
+        .input(z.object({ chatId: z.string() }))
+        .query(async ({ ctx, input }) => {
+            const userChats = await getChatsDB(ctx.user.id)
+            if (!userChats.includes(input.chatId)) {
+                return {
+                    success: false,
+                    error: 'user does not have access to this chat'
+                }
+            }
+            const messages = await loadChatDB(input.chatId) as Message[]
+            return {
+                success: true,
+                messages
+            }
+        })
 })
