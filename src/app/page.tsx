@@ -1,6 +1,7 @@
 'use client';
 
 import { useChat } from '@ai-sdk/react';
+import { api } from "~/trpc/react"
 
 // Simple Spinner component, can replace later
 function Spinner() {
@@ -35,9 +36,13 @@ export default function Page() {
     // https://ai-sdk.dev/docs/ai-sdk-ui/chatbot#image-generation
     // https://ai-sdk.dev/docs/ai-sdk-ui/chatbot#attachments-experimental
 
+    // test hello procedure in src/server/api/routers/post.ts
+    const trpcHelloResult = api.post.hello.useQuery({ text: 'world' })
+
     return (
         <>
             <main className="flex min-h-screen flex-col items-center justify-center ">
+                <h3>from TRPC call: {trpcHelloResult.data?.greeting}</h3>
                 <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
                     {messages.map(message => (
                         <div key={message.id}>
