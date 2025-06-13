@@ -6,6 +6,7 @@ import { deleteLastMessage, deleteMessage } from '~/lib/data';
 import { useEffect, useState } from 'react';
 import getEvents from '~/lib/eventsApi';
 import { ArrowUp, CircleX, RotateCcw } from 'lucide-react';
+import ReactMarkdown from "react-markdown"
 
 // Simple Spinner component, can replace later
 function Spinner() {
@@ -66,7 +67,7 @@ export default function Chat({
     // tutorial 3
     return (
         <>
-            <div className="container flex flex-col items-center justify-center gap-6 px-4 py-16">
+            <div className="container flex flex-col items-center justify-center gap-6 px-10 py-16">
                 messages
                 {messages?.sort((a, b) => a.createdAt!.getTime() - b.createdAt!.getTime())
                     .map(message => (
@@ -84,8 +85,14 @@ export default function Chat({
 
                                     // render text parts as simple text:
                                     // print out id for now for debugging
-                                    case 'text':
-                                        return message.id + part.text;
+                                    case 'text': {
+                                        // console.log("return text", part.text)
+                                        // return message.id + part.text;
+                                        // list numbers don't show
+                                        // return <div key={index} className="prose"><ReactMarkdown>{part.text}</ReactMarkdown></div>
+                                        // return <div key={index} style={{ listStyleType: 'decimal', marginLeft: '1.5rem' }}><ReactMarkdown>{part.text}</ReactMarkdown></div>
+                                        return <div key={index}><ReactMarkdown>{part.text}</ReactMarkdown></div>
+                                    }
 
                                     // for tool invocations, distinguish between the tools and the state:
                                     case 'tool-invocation': {
@@ -201,11 +208,15 @@ export default function Chat({
                                                             </div>
                                                         );
                                                 }
+                                                if (part.toolInvocation.state === 'result') {
+                                                    console.log("toolInvoation.result", part.toolInvocation.result);
+                                                }
                                                 return (
                                                     <div key={callId}>
                                                         <p>{part.toolInvocation.args}</p>
                                                         {part.toolInvocation.state === 'result' && (
-                                                            <p>{part.toolInvocation.result}</p>
+                                                            // <p>{part.toolInvocation.result}</p>
+                                                            <ReactMarkdown>{part.toolInvocation.result}</ReactMarkdown>
                                                         )}
                                                     </div>
                                                 );
@@ -290,6 +301,12 @@ export default function Chat({
                             onInput={e => {
                                 e.currentTarget.style.height = "auto";
                                 e.currentTarget.style.height = e.currentTarget.scrollHeight + "px";
+                            }}
+                            onKeyDown={e => {
+                                if (e.key === "Enter" && !e.shiftKey) {
+                                    e.preventDefault()
+                                    handleSubmit(e as any)
+                                }
                             }}
                         />
                         {/* {<button><ArrowUp /></button>} */}
