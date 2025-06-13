@@ -25,12 +25,12 @@ export const auth = betterAuth({
     },
     socialProviders: {
         google: {
-            clientId: GOOGLE_CLIENT_ID as string,
-            clientSecret: GOOGLE_CLIENT_SECRET as string,
+            clientId: GOOGLE_CLIENT_ID,
+            clientSecret: GOOGLE_CLIENT_SECRET,
         },
         github: {
-            clientId: process.env.GITHUB_CLIENT_ID as string,
-            clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
+            clientId: GITHUB_CLIENT_ID,
+            clientSecret: GITHUB_CLIENT_SECRET,
         },
     },
 
