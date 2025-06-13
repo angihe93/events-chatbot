@@ -5,6 +5,7 @@ import { type Message, useChat } from '@ai-sdk/react';
 import { deleteLastMessage, deleteMessage } from '~/lib/data';
 import { useEffect, useState } from 'react';
 import getEvents from '~/lib/eventsApi';
+import { ArrowUp, CircleX, RotateCcw } from 'lucide-react';
 
 // Simple Spinner component, can replace later
 function Spinner() {
@@ -65,7 +66,7 @@ export default function Chat({
     // tutorial 3
     return (
         <>
-            <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
+            <div className="container flex flex-col items-center justify-center gap-6 px-4 py-16">
                 messages
                 {messages?.sort((a, b) => a.createdAt!.getTime() - b.createdAt!.getTime())
                     .map(message => (
@@ -234,7 +235,12 @@ export default function Chat({
                                 }
                             })}
                             {status === 'ready' &&
-                                <button onClick={() => { void deleteMessage(message.id); setMessages(messages.filter(m => m.id !== message.id)) }} className='p-1'>Delete</button>}
+                                <div className='flex justify-end'>
+                                    <button onClick={() => { void deleteMessage(message.id); setMessages(messages.filter(m => m.id !== message.id)) }}
+                                        className="p-1 flex items-center gap-1 hover:text-red-700 text-sm">
+                                        <CircleX />
+                                        Delete
+                                    </button></div>}
                             <br />
                         </div>
                     ))}
@@ -253,16 +259,41 @@ export default function Chat({
                 {error && (
                     <>
                         <div>An error occurred.</div>
-                        <button type="button" onClick={() => reload()}>
+                        <button type="button" onClick={() => reload()}
+                            className="p-1 flex items-center gap-1 hover:text-green-700 text-sm"
+                        >
                             Retry
+                            <RotateCcw />
                         </button>
                     </>
                 )}
 
-                {(status === 'ready' && messages.length > 0) && <button onClick={async () => { try { await handleReload() } catch (error) { } finally { } }} disabled={!(status === 'ready')}>Regenerate</button>}
+                {(status === 'ready' && messages.length > 0) &&
+                    <div className="flex justify-end">
+                        <button onClick={async () => { try { await handleReload() } catch (error) { } finally { } }}
+                            disabled={!(status === 'ready')}
+                            className="p-1 flex items-center gap-1 hover:text-green-700 text-sm">
+                            <RotateCcw />
+                            Regenerate
+                        </button>
+                    </div>}
 
                 <form onSubmit={handleSubmit}>
-                    <input value={input} onChange={handleInputChange} className='border' />
+                    {/* <input value={input} onChange={handleInputChange} className='border' /> */}
+                    {/* auto expand text box to fit input text: */}
+                    <div className='w-[60vw]'>
+                        <textarea
+                            value={input}
+                            onChange={handleInputChange}
+                            className="border w-full resize-none overflow-hidden rounded-md p-2"
+                            rows={1}
+                            onInput={e => {
+                                e.currentTarget.style.height = "auto";
+                                e.currentTarget.style.height = e.currentTarget.scrollHeight + "px";
+                            }}
+                        />
+                        {/* {<button><ArrowUp /></button>} */}
+                    </div>
                 </form>
             </div>
         </>
