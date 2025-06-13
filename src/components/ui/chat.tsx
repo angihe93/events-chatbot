@@ -88,10 +88,24 @@ export default function Chat({
                                     case 'text': {
                                         // console.log("return text", part.text)
                                         // return message.id + part.text;
-                                        // list numbers don't show
-                                        // return <div key={index} className="prose"><ReactMarkdown>{part.text}</ReactMarkdown></div>
-                                        // return <div key={index} style={{ listStyleType: 'decimal', marginLeft: '1.5rem' }}><ReactMarkdown>{part.text}</ReactMarkdown></div>
-                                        return <div key={index}><ReactMarkdown>{part.text}</ReactMarkdown></div>
+                                        return <div key={index}>
+                                            {/* use custom component styling */}
+                                            {/* https://github.com/remarkjs/react-markdown?tab=readme-ov-file#appendix-b-components */}
+                                            {/* https://github.com/remarkjs/react-markdown/issues/832 */}
+                                            <ReactMarkdown components={{
+                                                ol({ children }) {
+                                                    return <ol className="list-inside list-decimal">{children}</ol>
+                                                },
+                                                ul({ children }) {
+                                                    return <ul className="list-inside list-disc">{children}</ul>
+                                                },
+                                                a: ({ node, ...props }) => (
+                                                    <a {...props} className="underline text-blue-600 hover:text-blue-800" />
+                                                ),
+                                            }}>
+                                                {part.text}
+                                            </ReactMarkdown>
+                                        </div>
                                     }
 
                                     // for tool invocations, distinguish between the tools and the state:
