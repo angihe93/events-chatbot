@@ -75,10 +75,14 @@ export default function Page() {
                         Start chatting
                     </button>
 
-                    <p>or continue a previous chat:</p>
-                    <div className="max-h-48 overflow-y-auto w-full flex flex-col gap-2 border">
-                        {chatIds.data?.map((i) => <button key={i} onClick={() => setSelectedChat(i)}> {i} </button>)}
-                    </div>
+                    {chatIds.data && chatIds.data.length > 0 &&
+                        <div>
+                            <p>or continue a previous chat:</p>
+                            <div className="max-h-48 overflow-y-auto w-full flex flex-col gap-2 border">
+                                {chatIds.data?.map((i) => <button key={i} onClick={() => setSelectedChat(i)}> {i} </button>)}
+                            </div>
+                        </div>
+                    }
 
                     {selectedChat && (
                         isChatLoading ? (

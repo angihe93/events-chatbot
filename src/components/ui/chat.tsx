@@ -277,8 +277,7 @@ export default function Chat({
                     </>
                 )}
 
-                {/* {(status === 'ready') && <button onClick={() => { setLastMsgId(messages[messages.length - 1]?.id); reload() }} disabled={!(status === 'ready')}>Regenerate</button>} */}
-                {(status === 'ready') && <button onClick={async () => { try { await handleReload() } catch (error) { } finally { } }} disabled={!(status === 'ready')}>Regenerate</button>}
+                {(status === 'ready' && messages.length > 0) && <button onClick={async () => { try { await handleReload() } catch (error) { } finally { } }} disabled={!(status === 'ready')}>Regenerate</button>}
 
                 <form onSubmit={handleSubmit}>
                     <input value={input} onChange={handleInputChange} className='border' />
