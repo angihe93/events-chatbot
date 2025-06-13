@@ -2,7 +2,7 @@
 
 import { createIdGenerator } from 'ai';
 import { type Message, useChat } from '@ai-sdk/react';
-import { deleteMessage } from '~/lib/data';
+import { deleteLastMessage, deleteMessage } from '~/lib/data';
 import { useEffect, useState } from 'react';
 import getEvents from '~/lib/eventsApi';
 
@@ -18,7 +18,7 @@ export default function Chat({
 
     // const [lastMsgId, setLastMsgId] = useState<string | undefined>('') // for delete previous msg in DB if user regenerates
     // useEffect(() => console.log(lastMsgId), [lastMsgId])
-    console.log("Chat id", id)
+    // console.log("Chat id", id)
     const { input, handleInputChange, handleSubmit, messages, setMessages, addToolResult, status, stop, error, reload } = useChat({
         id, // use the provided chat ID
         initialMessages, // initial messages if provided
@@ -47,38 +47,20 @@ export default function Chat({
     });
 
     const handleReload = async () => {
+        // this last message doesn't work reliably when a message is from a tool call
+        // switch to delete latest message for this chat id
         const lastMsgId = messages[messages.length - 1]?.id
         if (lastMsgId) {
-            console.log(lastMsgId)
+            console.log(`about to remove msg ${lastMsgId} and reload`)
             try {
-                await deleteMessage(lastMsgId)
+                // await deleteMessage(lastMsgId)
+                await deleteLastMessage(id!)
                 await reload()
             } catch (error) { } finally { }
         }
     }
 
-    // const eventSearchParams = { query: "food festivals brooklyn" }
-    // console.log(getEvents(eventSearchParams))
-
-    // simplified rendering code, extend as needed:
-    // return (
-    //     <main className="flex min-h-screen flex-col items-center justify-center ">
-    //         <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
-    //             messages
-    //             {messages.map(m => (
-    //                 <div key={m.id}>
-    //                     <strong>{m.role === 'user' ? 'User: ' : 'AI: '}</strong>
-    //                     {m.content}
-    //                 </div>
-    //             ))}
-
-    //             <form onSubmit={handleSubmit}>
-    //                 {/* press enter to submit */}
-    //                 <input value={input} onChange={handleInputChange} className='border' />
-    //             </form>
-    //         </div>
-    //     </main>
-    // );
+    useEffect(() => console.log(messages), [messages])
 
     // tutorial 3
     return (
