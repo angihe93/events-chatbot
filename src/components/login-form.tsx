@@ -68,7 +68,8 @@ export function LoginForm({
     if (success) {
       toast.success(message as string)
       // router.push("/dashboard")
-      router.push("/chat")
+      // router.push("/chat")
+      router.push("/")
     } else {
       toast.error(message as string)
     }
@@ -79,7 +80,8 @@ export function LoginForm({
     await authClient.signIn.social({
       provider: "google",
       // callbackURL: "/dashboard"
-      callbackURL: "/chat"
+      // callbackURL: "/chat"
+      callbackURL: "/"
     })
   }
 
@@ -87,7 +89,8 @@ export function LoginForm({
     await authClient.signIn.social({
       provider: "github",
       // callbackURL: "/dashboard"
-      callbackURL: "/chat"
+      // callbackURL: "/chat"
+      callbackURL: "/"
     })
   }
 
