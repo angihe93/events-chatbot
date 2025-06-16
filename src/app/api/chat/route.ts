@@ -26,7 +26,7 @@ const tools = {
         },
     },
     searchEvents: {
-        description: 'call the getEvents API and return results to the user',
+        description: 'call the getEvents API and return results to the user, make sure to include any location information in the query field of parameters',
         parameters: z.object({
             start: z.number().optional(),
             query: z.string(),
@@ -35,13 +35,45 @@ const tools = {
         }),
         execute: async (parameters: EventSearchParams) => {
             // console.log("searchEvents params", parameters)
-            const sendParams = {
+            const responseList = []
+            let sendParams = {
                 ...parameters,
-                date: parameters.date !== undefined ? DateType[parameters.date] : undefined
+                ...(parameters.date !== undefined && { date: DateType[parameters.date] })
+                // date: parameters.date !== undefined ? DateType[parameters.date] : undefined
             };
-            console.log("searchEvents paramsToSend", sendParams)
-            const result = await getEvents(parameters)
-            return { ...result, data: result.data.map(event => ({ name: event.name, description: event.description, date_human_readable: event.date_human_readable, link: event.link })) }
+            // console.log("searchEvents paramsToSend", sendParams)
+            console.log("parameters", parameters)
+            console.log("sendParams", sendParams)
+            let result = await getEvents(sendParams)
+
+            let start = 0
+            // get all pages of data
+            while (result.data && start < 2) {
+                const returnResult = { ...result, data: result.data.map(event => ({ name: event.name, description: event.description, date_human_readable: event.date_human_readable, link: event.link, full_address: event.venue.full_address })) }
+                for (const item of returnResult.data)
+                    responseList.push(item)
+                start += 1
+                sendParams = {
+                    ...parameters,
+                    start: start,
+                    ...(parameters.date !== undefined && { date: DateType[parameters.date] })
+                    // date: parameters.date !== undefined ? DateType[parameters.date] : undefined
+                }
+                // console.log("call getEvents with", sendParams)
+                result = await getEvents(sendParams)
+                // console.log("result", result)
+                // console.log("result.data", result.data)
+            };
+
+
+            // console.log("searchEvents returnResult", returnResult)
+            // return returnResult
+            // const returnResult = { ...result, data: result.data.map(event => ({ name: event.name, description: event.description, date_human_readable: event.date_human_readable, link: event.link, full_address: event.venue.full_address })) }
+            // for (const item of returnResult.data)
+            //     responseList.push(item)
+            console.log("responseList.length", responseList.length) // 99 for 10 pages
+            console.log("responseList.slice(0,10)", responseList.slice(0, 10))
+            return responseList
             // return await getEvents(parameters);
         }
     },
@@ -166,11 +198,21 @@ export async function POST(req: Request) {
 
         const result = streamText({
             // model: openai('gpt-4-turbo'),
-            model: openai('gpt-4o'),
+            // model: openai('gpt-4o'),
+            // model: openai('o4-mini-2025-04-16'),
+            model: openai('gpt-4o-mini'),
             // system: 'You are a helpful assistant.',
-            system: `You are a helpful assistant. Check your knowledge base before answering any questions.
-    Only respond to questions using information from tool calls.
-    if no relevant information is found in the tool calls, respond, "Sorry, I don't know."`,
+            // system: "You are an event promoter with an encyclopedic knowledge of the different events happening in any given location and a penchant for knowing what a person will like. You are being asked by the user to recommend events that they will enjoy. The user will set parameters for what they are looking for, such as location, type of event (i.e. art gallery exhibition, concert, food festival, etc.) Be sure to confirm that the location of the query matches up with the results that you provide.",
+            // system:
+            // `You are a helpful assistant. Check your knowledge base before answering any questions.
+            // Only respond to questions using information from tool calls.
+            // if no relevant information is found in the tool calls, respond, "Sorry, I don't know."
+            // When you invoke the searchEvents tool, make sure you include any location information from user's text into the query field`,
+            system:
+                `You are a helpful assistant, armed with a Get Events tool that will let you know about the events that are happening so you can answer user's query about events around a certain location in a certain timeframe if given. 
+            When you invoke the searchEvents tool, make sure to include any location and date information from user's text into the query field.
+            When responding to user with the event results, make sure the events match up with what the user is looking for in their query.
+            Explain your reasoning`,
             messages: messages,
             async onFinish({ response }) {
                 await saveChat({
