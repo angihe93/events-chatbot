@@ -47,8 +47,8 @@ const tools = {
             let result = await getEvents(sendParams)
 
             let start = 0
-            // get all pages of data
-            while (result.data && start < 2) {
+            // adjust how many pages of api data to get
+            while (result.data && start < 1) {
                 const returnResult = { ...result, data: result.data.map(event => ({ name: event.name, description: event.description, date_human_readable: event.date_human_readable, link: event.link, full_address: event.venue.full_address })) }
                 for (const item of returnResult.data)
                     responseList.push(item)
@@ -198,9 +198,9 @@ export async function POST(req: Request) {
 
         const result = streamText({
             // model: openai('gpt-4-turbo'),
-            // model: openai('gpt-4o'),
+            model: openai('gpt-4o'), // this model seems to work better with the new searchEvents description
             // model: openai('o4-mini-2025-04-16'),
-            model: openai('gpt-4o-mini'),
+            // model: openai('gpt-4o-mini'),
             // system: 'You are a helpful assistant.',
             // system: "You are an event promoter with an encyclopedic knowledge of the different events happening in any given location and a penchant for knowing what a person will like. You are being asked by the user to recommend events that they will enjoy. The user will set parameters for what they are looking for, such as location, type of event (i.e. art gallery exhibition, concert, food festival, etc.) Be sure to confirm that the location of the query matches up with the results that you provide.",
             // system:
