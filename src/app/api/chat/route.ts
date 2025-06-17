@@ -26,7 +26,7 @@ const tools = {
         },
     },
     searchEvents: {
-        description: 'call the getEvents API and return results to the user, make sure to include any location information in the query field of parameters',
+        description: 'call the getEvents API and return results to the user, make sure to include any location information in the query field of parameters (eg. make sure to include location abbreviations like nyc)',
         parameters: z.object({
             start: z.number().optional(),
             query: z.string(),
