@@ -5,6 +5,8 @@ bun start
 bun run cypress:open
 ```
 
+If getting Failed to find Server Action from API calls during tests, try rebuilding and starting server again (more info: https://nextjs.org/docs/messages/failed-to-find-server-action)
+
 
 # Link
 
