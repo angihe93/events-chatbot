@@ -11,4 +11,7 @@ Some main features that will be developed include:
 
 Mon - Tue:<br> try resolve the location issue in point 2 above; test LLM for different user prompts / options, make sure it returns good results, may need to try different input formats like drop down, fill in blanks
 
-Wed - Fri:<br> UI/UX improvmenets
+Wed - Fri:<br> UI/UX improvmenets, eg. implement forgot your password, add more styling, markdown rendering, usage tips like prompt suggestions, and personalization based on user interests and feedback. 
+
+Daily:<br>
+Test code with unit & E2E tests with cypress, clean & organize code, add NextJS optimizations if time
