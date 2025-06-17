@@ -188,7 +188,7 @@ export function SignupForm({
                                         {isLoading ? (
                                             <Loader2 className="size-4 animate-spin" />
                                         ) : (
-                                            "Login"
+                                            "Register"
                                         )}
                                     </Button>
                                 </div>

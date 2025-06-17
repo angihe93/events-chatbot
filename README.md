@@ -1,3 +1,11 @@
+To run tests with cypress:
+```
+bun run build
+bun start
+bun run cypress:open
+```
+
+
 # Link
 
 https://chatbot-iota-sable-87.vercel.app
