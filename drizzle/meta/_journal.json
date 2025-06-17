@@ -57,6 +57,20 @@
       "when": 1749762181449,
       "tag": "0007_boring_blob",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1750199350396,
+      "tag": "0008_fancy_nick_fury",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1750200629682,
+      "tag": "0009_thin_sleepwalker",
+      "breakpoints": true
     }
   ]
 }

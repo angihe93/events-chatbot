@@ -1,6 +1,6 @@
 import { db } from '~/server/db';
-import { chat_messages, chats } from '~/server/db/schema';
-import { eq } from 'drizzle-orm'
+import { chat_messages, chats, events_query_daily } from '~/server/db/schema';
+import { eq, and } from 'drizzle-orm'
 import { type Message } from '@ai-sdk/react';
 
 export async function createChatDB(id: string, userId: string): Promise<typeof chats.$inferSelect> {
@@ -57,6 +57,45 @@ export async function saveChatDB(id: string, messages: Message[]) {
                 continue;
             }
             throw error;
+        }
+    }
+}
+
+export async function getSetApiQueryPage(userId: string, query: string, date: string) {
+    const getQuery = await db.select()
+        .from(events_query_daily)
+        .where(
+            and(
+                eq(events_query_daily.userId, userId),
+                eq(events_query_daily.query, query),
+                eq(events_query_daily.date, date)
+            ))
+    if (getQuery.length === 0) {
+        const queryItem: typeof events_query_daily.$inferInsert = {
+            userId,
+            query,
+            date
+        }
+        await db.insert(events_query_daily).values(queryItem)
+        return 0
+    } else {
+        const now = new Date();
+        const createdAt = new Date(getQuery[0]!.queryCreatedAt);
+        const diffMs = now.getTime() - createdAt.getTime();
+        const diffHours = diffMs / (1000 * 60 * 60);
+        if (diffHours < 24) {
+            // increment page
+            const newPage = (getQuery[0]!.lastQueryPage) + 1;
+            await db.update(events_query_daily)
+                .set({ lastQueryPage: newPage })
+                .where(eq(events_query_daily.id, getQuery[0]!.id))
+            return newPage
+        } else {
+            // set createdAt to now, and page to 0
+            await db.update(events_query_daily)
+                .set({ lastQueryPage: 0, queryCreatedAt: now })
+                .where(eq(events_query_daily.id, getQuery[0]!.id));
+            return 0
         }
     }
 }

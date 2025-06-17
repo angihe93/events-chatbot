@@ -1,0 +1,1 @@
+ALTER TABLE "my-chatbot_events_query_daily" ADD COLUMN "lastQueryPage" integer DEFAULT 0 NOT NULL;

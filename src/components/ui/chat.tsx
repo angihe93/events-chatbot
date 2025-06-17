@@ -22,7 +22,7 @@ export default function Chat({
     // console.log("Chat id", id)
     const formRef = useRef<HTMLFormElement>(null);
 
-    const { input, handleInputChange, handleSubmit, messages, setMessages, addToolResult, status, stop, error, reload } = useChat({
+    const { input, handleInputChange, handleSubmit, messages, setMessages, addToolResult, status, stop, error, reload, append } = useChat({
         id, // use the provided chat ID
         initialMessages, // initial messages if provided
         sendExtraMessageFields: true, // send id and createdAt for each message
@@ -60,6 +60,16 @@ export default function Chat({
                 await deleteLastMessage(id!)
                 await reload()
             } catch (error) { } finally { }
+        }
+    }
+
+    const handleMoreSuggestionsClick = async () => {
+        console.log("clicked more suggestions");
+        const lastUserMsg = [...messages].reverse().find(m => m.role === 'user')
+        console.log("lastUserMsg", lastUserMsg)
+        if (lastUserMsg && lastUserMsg.parts && lastUserMsg.parts[0] && 'text' in lastUserMsg.parts[0]) {
+            console.log("'text' in lastUserMsg.parts[0]", 'text' in lastUserMsg.parts[0])
+            append({ role: 'user', content: lastUserMsg.parts[0].text })
         }
     }
 
@@ -267,6 +277,11 @@ export default function Chat({
                         </div>
                     ))}
 
+                {/* if last message has invoked searchEvents tool, show button for generate more suggestions */}
+                {status === 'ready' && messages && messages[messages.length - 1]?.parts.some(
+                    part => part.type === 'tool-invocation' && part.toolInvocation?.args?.date) &&
+                    <button type="submit" onClick={handleMoreSuggestionsClick}>More suggestions</button>}
+
                 {/* when is saveChat called? if stop is clicked when message is generating would user prompt be saved? */}
                 {(status === 'submitted' || status === 'streaming') && (
                     <div>
@@ -324,7 +339,7 @@ export default function Chat({
                         {/* {<button><ArrowUp /></button>} */}
                     </div>
                 </form>
-            </div>
+            </div >
         </>
     );
 }
