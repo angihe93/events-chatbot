@@ -122,6 +122,7 @@ export const events_query_daily = createTable(
     queryCreatedAt: d.timestamp({ withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
+    lastQueryPage: d.integer().notNull().default(0)
   }))
 
 // Auth table for better auth

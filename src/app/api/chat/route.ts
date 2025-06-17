@@ -9,6 +9,7 @@ import { createResource } from '~/lib/actions/resources';
 import { findRelevantContent } from '~/lib/ai/embedding';
 import { auth } from '~/lib/auth';
 import { headers } from 'next/headers';
+import { getSetApiQueryPage } from '~/server/db/db';
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
@@ -45,11 +46,15 @@ const tools = {
             }
             // query DB and see if user has asked this query before in the last day
             // if so, increment start page in api call
+            // TODO: may want to split get & set and increment query only page after successful getEvents call
+            // TODO: handle running out of pages in results
+            const queryPage = await getSetApiQueryPage(userId!, parameters.query, parameters.date !== undefined ? DateType[parameters.date] : "")
 
             // console.log("searchEvents params", parameters)
             const responseList = []
             let sendParams = {
                 ...parameters,
+                start: queryPage * 10,
                 ...(parameters.date !== undefined && { date: DateType[parameters.date] })
                 // date: parameters.date !== undefined ? DateType[parameters.date] : undefined
             };
@@ -58,35 +63,14 @@ const tools = {
             console.log("sendParams", sendParams)
             let result = await getEvents(sendParams)
 
-            let start = 0
-            // adjust how many pages of api data to get
-            while (result.data && start < 1) {
-                const returnResult = { ...result, data: result.data.map(event => ({ name: event.name, description: event.description, date_human_readable: event.date_human_readable, link: event.link, full_address: event.venue.full_address })) }
-                for (const item of returnResult.data)
-                    responseList.push(item)
-                start += 1
-                sendParams = {
-                    ...parameters,
-                    start: start,
-                    ...(parameters.date !== undefined && { date: DateType[parameters.date] })
-                    // date: parameters.date !== undefined ? DateType[parameters.date] : undefined
-                }
-                // console.log("call getEvents with", sendParams)
-                result = await getEvents(sendParams)
-                // console.log("result", result)
-                // console.log("result.data", result.data)
-            };
+            const returnResult = { ...result, data: result.data.map(event => ({ name: event.name, description: event.description, date_human_readable: event.date_human_readable, link: event.link, full_address: event.venue.full_address })) }
+            for (const item of returnResult.data)
+                responseList.push(item)
 
-
-            // console.log("searchEvents returnResult", returnResult)
-            // return returnResult
-            // const returnResult = { ...result, data: result.data.map(event => ({ name: event.name, description: event.description, date_human_readable: event.date_human_readable, link: event.link, full_address: event.venue.full_address })) }
-            // for (const item of returnResult.data)
-            //     responseList.push(item)
             console.log("responseList.length", responseList.length) // 99 for 10 pages
             console.log("responseList.slice(0,10)", responseList.slice(0, 10))
+
             return responseList
-            // return await getEvents(parameters);
         }
     },
     // client-side tool that starts user interaction:
