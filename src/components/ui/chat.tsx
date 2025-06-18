@@ -103,14 +103,7 @@ export default function Chat({
             }
         }
         console.log(eventInfo)
-        // const session = await auth.api.getSession({
-        //     headers: await headers(),
-        // });
-        // if (!session?.user) {
-        //     console.log("User not authenticated, redirecting to login");
-        //     redirect('/login')
-        //     // return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
-        // }
+
         if (eventInfo.length === 4) {
             const saveEventParams = {
                 name: eventInfo[0],
