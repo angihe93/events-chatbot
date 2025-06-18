@@ -13,6 +13,7 @@
     "db:test:generate": "bun --env-file=.env.local drizzle-kit generate",
     "db:test:migrate": "bun --env-file=.env.local drizzle-kit migrate",
     "dev": "next dev --turbo",
+    "dev:test": "bun --env-file=.env.local next dev --turbo",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
     "format:write": "prettier --write \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
     "lint": "next lint",

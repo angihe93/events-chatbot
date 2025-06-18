@@ -12,6 +12,9 @@ To push changes to test DB on Supabase:
 or 
 ```bun run db:test:migrate```
 
+To run app in dev mode:
+```bun run dev:test```
+
 
 # Link
 
