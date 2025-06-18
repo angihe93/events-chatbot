@@ -135,3 +135,11 @@ export async function saveUnsaveEvent(
         return await db.delete(saved_events).where(and(...conditions)).returning()
     }
 }
+
+export async function getSavedEvents(userId: string) {
+    const getEvents = await db.select()
+        .from(saved_events)
+        .where(eq(saved_events.userId, userId))
+    console.log("result from db getSavedEvents", getEvents)
+    return getEvents
+}
