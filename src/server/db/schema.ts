@@ -125,6 +125,22 @@ export const events_query_daily = createTable(
     lastQueryPage: d.integer().notNull().default(0)
   }))
 
+// User saved events
+// eventually can separate this out into an events table and a table that links user to their saved events, to avoid storing duplicate event info
+export const saved_events = createTable(
+  "saved_events",
+  (d) => ({
+    id: d.varchar({ length: 256 }).primaryKey().$defaultFn(() => nanoid()),
+    name: d.text().notNull(),
+    description: d.text(),
+    dateTime: d.varchar({ length: 256 }),
+    location: d.text(),
+    link: d.text(),
+    userId: d.varchar({ length: 256 }).references(() => users.id, { onDelete: "cascade" }).notNull(),
+  })
+)
+
+
 // Auth table for better auth
 // https://www.better-auth.com/docs/concepts/database#user
 // https://www.better-auth.com/docs/installation#create-database-tables

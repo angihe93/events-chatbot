@@ -108,13 +108,19 @@ export default function Chat({
                                                     return <ol className="list-inside list-decimal">{children}</ol>
                                                 },
                                                 ul({ children }) {
-                                                    return <ul className="list-inside list-disc">{children}</ul>
+                                                    return (
+                                                        (<ul className="list-inside list-disc">{children}
+                                                            <div className='flex-row flex-end items-end justify-end'>
+                                                                <button className='border' onClick={() => { console.log(children) }}>save</button>
+                                                            </div>
+                                                        </ul>)
+                                                    )
                                                 },
                                                 a: ({ node, ...props }) => (
                                                     <a {...props} className="underline text-blue-600 hover:text-blue-800" />
                                                 ),
                                             }}>
-                                                {part.text}
+                                                {message.id + part.text}
                                             </ReactMarkdown>
                                         </div>
                                     }
