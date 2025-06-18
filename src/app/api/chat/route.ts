@@ -27,7 +27,8 @@ const tools = {
         },
     },
     searchEvents: {
-        description: `call the getEvents API and return results to the user, make sure to include any location information in the query field of parameters (eg. make sure to include location abbreviations like nyc)`,
+        description: `call the getEvents API and return results to the user, make sure to include any location information in the query field of parameters (eg. make sure to include location abbreviations like nyc).
+        when you return the result list for each event, include name, description, date, location, link, in that order`,
         parameters: z.object({
             start: z.number().optional(),
             query: z.string(),
@@ -208,6 +209,7 @@ export async function POST(req: Request) {
                 `You are a helpful assistant, armed with a Get Events tool that will let you know about the events that are happening so you can answer user's query about events around a certain location in a certain timeframe if given. 
             When you invoke the searchEvents tool, make sure to include any location and date information from user's text into the query field.
             When responding to user with the event results, make sure the events match up with what the user is looking for in their query.
+            When you return the result list for each event, include name, description, date, location, link, in that order
             Explain your reasoning. At the end of your event suggestions response, always ask user if they would like more suggestions`,
             messages: messages,
             async onFinish({ response }) {

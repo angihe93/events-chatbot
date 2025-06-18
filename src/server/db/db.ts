@@ -3,6 +3,7 @@ import { chat_messages, chats, events_query_daily } from '~/server/db/schema';
 import { eq, and } from 'drizzle-orm'
 import { type Message } from '@ai-sdk/react';
 
+
 export async function createChatDB(id: string, userId: string): Promise<typeof chats.$inferSelect> {
     const chat: typeof chats.$inferInsert = {
         id: id,
@@ -98,4 +99,10 @@ export async function getSetApiQueryPage(userId: string, query: string, date: st
             return 0
         }
     }
+}
+
+export async function saveEvent(
+    userId: string, name: string, description?: string, dateTime?: string, location?: string, link?: string
+) {
+    console.log("inside db saveEvent", userId, name, description, dateTime, location, link)
 }

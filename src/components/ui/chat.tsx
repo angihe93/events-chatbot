@@ -6,6 +6,7 @@ import { deleteLastMessage } from '~/lib/data';
 import { useEffect, useRef } from 'react';
 import { RotateCcw } from 'lucide-react';
 import ReactMarkdown from "react-markdown"
+import React from 'react';
 
 // Simple Spinner component, can replace later
 function Spinner() {
@@ -73,7 +74,72 @@ export default function Chat({
         }
     }
 
-    useEffect(() => console.log(messages), [messages])
+    const handleSaveEvent = async (childrenArray: any[]) => {
+        // console.log("")
+        console.log(childrenArray)
+        // let eventName
+        let eventInfo: string[] = [] // name, datetime, location, link
+        for (const item of childrenArray) {
+            if (item.props) {
+                console.log(item)
+                if (item.type === "p") {
+                    // get event name
+                    const eventName = item.props.children.props.children
+                    eventInfo.push(eventName)
+                } else {
+                    const innerChildrenArr = item.props.children
+                    for (const c of innerChildrenArr) {
+                        if (c.props) {
+                            if (Array.isArray(c.props.children) &&
+                                React.isValidElement(c.props.children[0]) &&
+                                c.props.children[0].type === 'strong')
+                                eventInfo.push(c.props.children[1])
+                            else {
+                                eventInfo.push(c.props.children.props.href)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        console.log(eventInfo)
+        // const session = await auth.api.getSession({
+        //     headers: await headers(),
+        // });
+        // if (!session?.user) {
+        //     console.log("User not authenticated, redirecting to login");
+        //     redirect('/login')
+        //     // return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+        // }
+        if (eventInfo.length === 4) {
+            const saveEventParams = {
+                name: eventInfo[0],
+                dateTime: eventInfo[1],
+                location: eventInfo[2],
+                link: eventInfo[3]
+            }
+            await fetch('/api/save-event', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(saveEventParams),
+            })
+        } else if (eventInfo.length === 5) {
+            const saveEventParams = {
+                name: eventInfo[0],
+                description: eventInfo[1],
+                dateTime: eventInfo[2],
+                location: eventInfo[3],
+                link: eventInfo[4]
+            }
+            await fetch('/api/save-event', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(saveEventParams),
+            })
+        }
+    }
+
+    // useEffect(() => console.log(messages), [messages])
 
     // tutorial 3
     return (
@@ -105,15 +171,28 @@ export default function Chat({
                                             {/* https://github.com/remarkjs/react-markdown/issues/832 */}
                                             <ReactMarkdown components={{
                                                 ol({ children }) {
-                                                    return <ol className="list-inside list-decimal">{children}</ol>
+                                                    return (
+                                                        <ol className="list-inside list-decimal">{children}</ol>
+                                                    )
                                                 },
                                                 ul({ children }) {
                                                     return (
-                                                        (<ul className="list-inside list-disc">{children}
-                                                            <div className='flex-row flex-end items-end justify-end'>
-                                                                <button className='border' onClick={() => { console.log(children) }}>save</button>
-                                                            </div>
+                                                        (<ul className="list-inside list-disc">
+                                                            {children}
+                                                            {/* <button className='border' onClick={() => { console.log(children); console.log(part) }}>save</button> */}
                                                         </ul>)
+                                                    )
+                                                },
+                                                li({ children }) {
+                                                    const childrenArray = React.Children.toArray(children)
+                                                    // console.log(childrenArray)
+                                                    // Check: if only one child and it's a <p>, we can show save button
+                                                    // can get all relevant event info from here, including name, description, location, link
+                                                    // use to save user liked events
+                                                    const childP = React.isValidElement(childrenArray[1]) && childrenArray[1].type === 'p'
+                                                    // console.log(childP)
+                                                    return (
+                                                        <li>{children}{childP && <button className='border' onClick={() => handleSaveEvent(childrenArray)}>save</button>}</li>
                                                     )
                                                 },
                                                 a: ({ node, ...props }) => (
@@ -255,7 +334,7 @@ export default function Chat({
                                             case 'addResource': {
                                                 switch (part.toolInvocation.state) {
                                                     case 'partial-call':
-                                                        // const toolInvocation = part.toolInvocation as { toolName: string; state: string; args?: any; result?: any; toolCallId?: string }
+                                                        // const toolInvocation = part.toolInvocation as {toolName: string; state: string; args?: any; result?: any; toolCallId?: string }
                                                         const toolInvocation = part.toolInvocation as { toolName: string; state: string; toolCallId?: string }
                                                         return (
                                                             <div key={callId}>
