@@ -16,7 +16,7 @@ export default function SavedEventsPage() {
                     {/* <button onClick={() => router.push('/saved-events')} className="flex items-center gap-2">
                         <MessageCircle className="size-4" />back to chats
                     </button> */}
-                    <Link href="/" className="flex items-center gap-2">
+                    <Link href="/chat" className="flex items-center gap-2">
                         <MessageCircle className="size-4" />back to chats
                     </Link>
                 </div>
