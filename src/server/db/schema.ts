@@ -137,6 +137,10 @@ export const saved_events = createTable(
     location: d.text(),
     link: d.text(),
     userId: d.varchar({ length: 256 }).references(() => users.id, { onDelete: "cascade" }).notNull(),
+    createdAt: d
+      .timestamp({ withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
   })
 )
 

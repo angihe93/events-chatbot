@@ -208,6 +208,7 @@ export async function POST(req: Request) {
             system:
                 `You are a helpful assistant, armed with a Get Events tool that will let you know about the events that are happening so you can answer user's query about events around a certain location in a certain timeframe if given. 
             When you invoke the searchEvents tool, make sure to include any location and date information from user's text into the query field.
+            When user asks the same question about events, please invoke the tool again. 
             When responding to user with the event results, make sure the events match up with what the user is looking for in their query.
             When you return the result list for each event, include name, description, date, location, link, in that order.
             When you return the markdown result in text, please stick to one format so my button rendering logic in chat.tsx would work and not throw runtime errors.

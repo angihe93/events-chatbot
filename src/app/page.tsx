@@ -5,6 +5,8 @@ import { useState } from 'react';
 import { Logout } from '~/components/logout';
 import Chat from '~/components/ui/chat';
 import { api } from "~/trpc/react"
+import { useRouter } from 'next/navigation'
+import { Bookmark } from 'lucide-react';
 
 
 // Simple Spinner component, can replace later
@@ -57,14 +59,15 @@ export default function Page() {
         { enabled: !!selectedChat } // only run query if selectedChat is set
     );
 
+    const router = useRouter()
 
     return (
         <>
             <div className="mx-25 my-25">
-                {/* <div className="float-right">
-                    <Logout />
-                </div> */}
-                <div className="flex justify-end">
+                <div className="flex justify-between">
+                    <button onClick={() => router.push('/saved-events')} className="flex items-center gap-2">
+                        <Bookmark className="size-4" />Saved Events
+                    </button>
                     <Logout />
                 </div>
 
