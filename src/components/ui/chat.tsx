@@ -3,9 +3,11 @@
 import { createIdGenerator } from 'ai';
 import { type Message, useChat } from '@ai-sdk/react';
 import { deleteLastMessage } from '~/lib/data';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { RotateCcw } from 'lucide-react';
 import ReactMarkdown from "react-markdown"
+import React from 'react';
+// import isEqual from 'lodash.isequal'
 
 // Simple Spinner component, can replace later
 function Spinner() {
@@ -73,7 +75,233 @@ export default function Chat({
         }
     }
 
-    useEffect(() => console.log(messages), [messages])
+    // helper function to construct event fields from rendered list
+    // not working for some reason, doing the same thing in handleSaveEvent and and checkIfSaved separately
+    const constructSaveEvent = (childrenArray: any[]) => {
+        // console.log("")
+        console.log(childrenArray)
+        // let eventName
+        let eventInfo: string[] = [] // name, datetime, location, link
+        for (const item of childrenArray) {
+            if (item.props) {
+                console.log(item)
+                if (item.type === "p") {
+                    // get event name
+                    const eventName = item.props.children.props.children
+                    eventInfo.push(eventName)
+                } else {
+                    const innerChildrenArr = item.props.children
+                    for (const c of innerChildrenArr) {
+                        if (c.props) {
+                            if (Array.isArray(c.props.children) &&
+                                React.isValidElement(c.props.children[0]) &&
+                                c.props.children[0].type === 'strong')
+                                eventInfo.push(c.props.children[1])
+                            else {
+                                eventInfo.push(c.props.children.props.href)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        console.log(eventInfo)
+
+        let saveEvent
+        if (eventInfo.length === 4) {
+            saveEvent = {
+                name: eventInfo[0],
+                dateTime: eventInfo[1],
+                location: eventInfo[2],
+                link: eventInfo[3]
+            }
+        } else if (eventInfo.length === 5) {
+            saveEvent = {
+                name: eventInfo[0],
+                description: eventInfo[1],
+                dateTime: eventInfo[2],
+                location: eventInfo[3],
+                link: eventInfo[4]
+            }
+        }
+        console.log("constructSaveEvent saveEvent", saveEvent)
+        return saveEvent
+    }
+
+    const [saveEventClickFlag, setSaveEventClickFlag] = useState(false)
+    const handleSaveEvent = async (childrenArray: any[]) => {
+        // const saveEventParams = constructSaveEvent(childrenArray)
+        // await fetch('/api/save-event', {
+        //     method: 'POST',
+        //     headers: { 'Content-Type': 'application/json' },
+        //     body: JSON.stringify(saveEventParams),
+        // })
+
+        // console.log("")
+        console.log(childrenArray)
+        // let eventName
+        let eventInfo: string[] = [] // name, datetime, location, link
+        for (const item of childrenArray) {
+            if (item.props) {
+                console.log(item)
+                if (item.type === "p") {
+                    // get event name
+                    const eventName = item.props.children.props.children
+                    eventInfo.push(eventName)
+                } else {
+                    const innerChildrenArr = item.props.children
+                    for (const c of innerChildrenArr) {
+                        if (c.props) {
+                            if (Array.isArray(c.props.children) &&
+                                React.isValidElement(c.props.children[0]) &&
+                                c.props.children[0].type === 'strong')
+                                eventInfo.push(c.props.children[1])
+                            else {
+                                eventInfo.push(c.props.children.props.href)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        console.log(eventInfo)
+
+        if (eventInfo.length === 4) {
+            const saveEventParams = {
+                name: eventInfo[0],
+                dateTime: eventInfo[1],
+                location: eventInfo[2],
+                link: eventInfo[3]
+            }
+            await fetch('/api/save-event', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(saveEventParams),
+            })
+        } else if (eventInfo.length === 5) {
+            const saveEventParams = {
+                name: eventInfo[0],
+                description: eventInfo[1],
+                dateTime: eventInfo[2],
+                location: eventInfo[3],
+                link: eventInfo[4]
+            }
+            await fetch('/api/save-event', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(saveEventParams),
+            })
+        }
+        setSaveEventClickFlag(!saveEventClickFlag)
+    }
+
+    // for save button styling
+    type SavedEvent =
+        | { name: string | undefined; dateTime: string | undefined; location: string | undefined; link: string | undefined; description?: undefined }
+        | { name: string | undefined; description: string | undefined; dateTime: string | undefined; location: string | undefined; link: string | undefined };
+
+    const [savedEvents, setSavedEvents] = useState<SavedEvent[]>([]);
+    useEffect(() => {
+        const fetchSavedEvents = async () => {
+            const response = await fetch('/api/save-event/get-saved-events', {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' },
+            });
+            const result = await response.json();
+            console.log("api response", result)
+            const events = result.data.map(
+                ({ userId, id, ...rest }: any) => rest
+            )
+            setSavedEvents(events)
+        };
+        fetchSavedEvents();
+    }, [saveEventClickFlag]);
+
+    const checkIfSaved = (childrenArray: any[]) => {
+        // const saveEvent = constructSaveEvent(childrenArray);
+        // console.log("checkIfSaved saveEvent", saveEvent)
+        // if (!saveEvent) return false;
+        // return savedEvents.some(ev =>
+        //     JSON.stringify(ev) === JSON.stringify(saveEvent)
+        // );
+
+        // console.log(childrenArray)
+        // console.log(savedEvents)
+        let eventInfo: string[] = [] // name, datetime, location, link
+        for (const item of childrenArray) {
+            if (item.props) {
+                // console.log(item)
+                if (item.type === "p" || item.type === "h2") {
+                    // get event name
+                    const eventName = item.props.children.props?.children
+                    eventInfo.push(eventName)
+                } else if (item.type === "strong") {
+                    const eventName = item.props.children
+                    eventInfo.push(eventName)
+                }
+                // else {
+                //     const innerChildrenArr = item.props.children
+                //     console.log("innerChildrenArr", innerChildrenArr)
+                //     for (const c of innerChildrenArr) {
+                //         if (c.props) {
+                //             if (Array.isArray(c.props.children) &&
+                //                 React.isValidElement(c.props.children[0]) &&
+                //                 c.props.children[0].type === 'strong')
+                //                 eventInfo.push(c.props.children[1])
+                //             else {
+                //                 eventInfo.push(c.props.children.props.href)
+                //             }
+                //         }
+                //     }
+                // }
+            }
+        }
+        // console.log(eventInfo)
+        return savedEvents.some(ev => ev.name === eventInfo[0])
+
+        // more rigorous comparison using all fields is buggy, prone to runtime errors
+        // so skipping for now
+
+        // let saveEvent: { name: string | undefined; dateTime: string | undefined; location: string | undefined; link: string | undefined; description?: string | undefined; } = {
+        //     name: undefined,
+        //     dateTime: undefined,
+        //     location: undefined,
+        //     link: undefined,
+        //     description: undefined
+        // };
+        // if (eventInfo.length === 4) {
+        //     saveEvent = {
+        //         name: eventInfo[0],
+        //         description: undefined,
+        //         dateTime: eventInfo[1],
+        //         location: eventInfo[2],
+        //         link: eventInfo[3]
+        //     }
+        // } else if (eventInfo.length === 5) {
+        //     saveEvent = {
+        //         name: eventInfo[0],
+        //         description: eventInfo[1],
+        //         dateTime: eventInfo[2],
+        //         location: eventInfo[3],
+        //         link: eventInfo[4]
+        //     }
+        // }
+        // console.log(saveEvent)
+        // console.log(JSON.stringify(saveEvent))
+        // console.log(savedEvents.map(ev =>
+        //     JSON.stringify(ev)
+        // ))
+
+        // return savedEvents.some(ev =>
+        //     JSON.stringify(ev) === JSON.stringify(saveEvent)
+        // )
+    }
+
+    // useEffect(() => {
+    //     console.log("savedEvents", savedEvents);
+    // }, [savedEvents])
+
+    // useEffect(() => console.log(messages), [messages])
 
     // tutorial 3
     return (
@@ -84,6 +312,24 @@ export default function Chat({
                     .map(message => (
                         <div key={message.id}>
                             <strong>{`${message.role}: `}</strong>
+
+                            {/* <ReactMarkdown components={{
+                                ol({ children }) {
+                                    return (
+                                        <ol className="list-inside list-decimal">{children}</ol>
+                                    )
+                                },
+                                ul({ children }) {
+                                    return (
+                                        (<ul className="list-inside list-disc">
+                                            {children}
+                                        </ul>)
+                                    )
+                                },
+                            }}>
+                                {message.content}
+                            </ReactMarkdown> */}
+
                             {message.parts.map((part, index) => {
                                 switch (part.type) {
                                     case 'step-start':
@@ -105,16 +351,37 @@ export default function Chat({
                                             {/* https://github.com/remarkjs/react-markdown/issues/832 */}
                                             <ReactMarkdown components={{
                                                 ol({ children }) {
-                                                    return <ol className="list-inside list-decimal">{children}</ol>
+                                                    return (
+                                                        <ol className="list-inside list-decimal">{children}</ol>
+                                                    )
                                                 },
                                                 ul({ children }) {
-                                                    return <ul className="list-inside list-disc">{children}</ul>
+                                                    return (
+                                                        (<ul className="list-inside list-disc">
+                                                            {children}
+                                                            {/* <button className='border' onClick={() => { console.log(children); console.log(part) }}>save</button> */}
+                                                        </ul>)
+                                                    )
+                                                },
+                                                li({ children }) {
+                                                    const childrenArray = React.Children.toArray(children)
+                                                    // console.log(childrenArray)
+                                                    // Check: if only one child and it's a <p>, we can show save button
+                                                    // can get all relevant event info from here, including name, description, location, link
+                                                    // use to save user liked events
+                                                    const childP = React.isValidElement(childrenArray[1]) && childrenArray[1].type === 'p'
+                                                    // console.log(childP)
+                                                    const isSaved = checkIfSaved(childrenArray)
+                                                    const style = isSaved ? 'border bg-red-100' : 'border'
+                                                    return (
+                                                        <li>{children}{childP && <button className={style} onClick={() => handleSaveEvent(childrenArray)}>{isSaved ? 'saved' : 'save'}</button>}</li>
+                                                    )
                                                 },
                                                 a: ({ node, ...props }) => (
                                                     <a {...props} className="underline text-blue-600 hover:text-blue-800" />
                                                 ),
                                             }}>
-                                                {part.text}
+                                                {message.id + part.text}
                                             </ReactMarkdown>
                                         </div>
                                     }
@@ -249,7 +516,7 @@ export default function Chat({
                                             case 'addResource': {
                                                 switch (part.toolInvocation.state) {
                                                     case 'partial-call':
-                                                        // const toolInvocation = part.toolInvocation as { toolName: string; state: string; args?: any; result?: any; toolCallId?: string }
+                                                        // const toolInvocation = part.toolInvocation as {toolName: string; state: string; args?: any; result?: any; toolCallId?: string }
                                                         const toolInvocation = part.toolInvocation as { toolName: string; state: string; toolCallId?: string }
                                                         return (
                                                             <div key={callId}>

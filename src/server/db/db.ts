@@ -1,7 +1,8 @@
 import { db } from '~/server/db';
-import { chat_messages, chats, events_query_daily } from '~/server/db/schema';
+import { chat_messages, chats, events_query_daily, saved_events } from '~/server/db/schema';
 import { eq, and } from 'drizzle-orm'
 import { type Message } from '@ai-sdk/react';
+
 
 export async function createChatDB(id: string, userId: string): Promise<typeof chats.$inferSelect> {
     const chat: typeof chats.$inferInsert = {
@@ -98,4 +99,47 @@ export async function getSetApiQueryPage(userId: string, query: string, date: st
             return 0
         }
     }
+}
+
+// save event for user if not already saved, or remove saved event for user if already saved
+export async function saveUnsaveEvent(
+    userId: string, name: string, description?: string, dateTime?: string, location?: string, link?: string
+) {
+    console.log("inside db saveUnsaveEvent", userId, name, description, dateTime, location, link)
+    const conditions = [
+        eq(saved_events.userId, userId),
+        eq(saved_events.name, name),
+        description !== undefined ? eq(saved_events.description, description) : undefined,
+        dateTime !== undefined ? eq(saved_events.dateTime, dateTime) : undefined,
+        location !== undefined ? eq(saved_events.location, location) : undefined,
+        link !== undefined ? eq(saved_events.link, link) : undefined,
+    ].filter(Boolean); // Remove undefined from comparison
+
+    const getEvent = await db.select()
+        .from(saved_events)
+        .where(and(...conditions))
+
+    if (getEvent.length === 0) {
+        // add saved event
+        const eventItem: typeof saved_events.$inferInsert = {
+            name,
+            userId,
+            ...(description !== undefined && { description }),
+            ...(dateTime !== undefined && { dateTime }),
+            ...(location !== undefined && { location }),
+            ...(link !== undefined && { link }),
+        }
+        return await db.insert(saved_events).values(eventItem).returning()
+    } else {
+        // remove saved event
+        return await db.delete(saved_events).where(and(...conditions)).returning()
+    }
+}
+
+export async function getSavedEvents(userId: string) {
+    const getEvents = await db.select()
+        .from(saved_events)
+        .where(eq(saved_events.userId, userId))
+    console.log("result from db getSavedEvents", getEvents)
+    return getEvents
 }
