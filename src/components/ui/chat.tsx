@@ -225,68 +225,76 @@ export default function Chat({
         //     JSON.stringify(ev) === JSON.stringify(saveEvent)
         // );
 
-        // console.log("")
-        console.log(savedEvents)
         // console.log(childrenArray)
-        // let eventName
+        // console.log(savedEvents)
         let eventInfo: string[] = [] // name, datetime, location, link
         for (const item of childrenArray) {
             if (item.props) {
-                console.log(item)
-                if (item.type === "p") {
+                // console.log(item)
+                if (item.type === "p" || item.type === "h2") {
                     // get event name
-                    const eventName = item.props.children.props.children
+                    const eventName = item.props.children.props?.children
                     eventInfo.push(eventName)
-                } else {
-                    const innerChildrenArr = item.props.children
-                    for (const c of innerChildrenArr) {
-                        if (c.props) {
-                            if (Array.isArray(c.props.children) &&
-                                React.isValidElement(c.props.children[0]) &&
-                                c.props.children[0].type === 'strong')
-                                eventInfo.push(c.props.children[1])
-                            else {
-                                eventInfo.push(c.props.children.props.href)
-                            }
-                        }
-                    }
+                } else if (item.type === "strong") {
+                    const eventName = item.props.children
+                    eventInfo.push(eventName)
                 }
+                // else {
+                //     const innerChildrenArr = item.props.children
+                //     console.log("innerChildrenArr", innerChildrenArr)
+                //     for (const c of innerChildrenArr) {
+                //         if (c.props) {
+                //             if (Array.isArray(c.props.children) &&
+                //                 React.isValidElement(c.props.children[0]) &&
+                //                 c.props.children[0].type === 'strong')
+                //                 eventInfo.push(c.props.children[1])
+                //             else {
+                //                 eventInfo.push(c.props.children.props.href)
+                //             }
+                //         }
+                //     }
+                // }
             }
         }
-        console.log(eventInfo)
-        let saveEvent: { name: string | undefined; dateTime: string | undefined; location: string | undefined; link: string | undefined; description?: string | undefined; } = {
-            name: undefined,
-            dateTime: undefined,
-            location: undefined,
-            link: undefined,
-            description: undefined
-        };
-        if (eventInfo.length === 4) {
-            saveEvent = {
-                name: eventInfo[0],
-                description: undefined,
-                dateTime: eventInfo[1],
-                location: eventInfo[2],
-                link: eventInfo[3]
-            }
-        } else if (eventInfo.length === 5) {
-            saveEvent = {
-                name: eventInfo[0],
-                description: eventInfo[1],
-                dateTime: eventInfo[2],
-                location: eventInfo[3],
-                link: eventInfo[4]
-            }
-        }
-        console.log(saveEvent)
-        console.log(JSON.stringify(saveEvent))
-        console.log(savedEvents.map(ev =>
-            JSON.stringify(ev)
-        ))
+        // console.log(eventInfo)
+        return savedEvents.some(ev => ev.name === eventInfo[0])
 
-        return savedEvents.some(ev =>
-            JSON.stringify(ev) === JSON.stringify(saveEvent)
-        )
+        // more rigorous comparison using all fields is buggy, prone to runtime errors
+        // so skipping for now
+
+        // let saveEvent: { name: string | undefined; dateTime: string | undefined; location: string | undefined; link: string | undefined; description?: string | undefined; } = {
+        //     name: undefined,
+        //     dateTime: undefined,
+        //     location: undefined,
+        //     link: undefined,
+        //     description: undefined
+        // };
+        // if (eventInfo.length === 4) {
+        //     saveEvent = {
+        //         name: eventInfo[0],
+        //         description: undefined,
+        //         dateTime: eventInfo[1],
+        //         location: eventInfo[2],
+        //         link: eventInfo[3]
+        //     }
+        // } else if (eventInfo.length === 5) {
+        //     saveEvent = {
+        //         name: eventInfo[0],
+        //         description: eventInfo[1],
+        //         dateTime: eventInfo[2],
+        //         location: eventInfo[3],
+        //         link: eventInfo[4]
+        //     }
+        // }
+        // console.log(saveEvent)
+        // console.log(JSON.stringify(saveEvent))
+        // console.log(savedEvents.map(ev =>
+        //     JSON.stringify(ev)
+        // ))
+
+        // return savedEvents.some(ev =>
+        //     JSON.stringify(ev) === JSON.stringify(saveEvent)
+        // )
     }
 
     // useEffect(() => {
@@ -304,6 +312,24 @@ export default function Chat({
                     .map(message => (
                         <div key={message.id}>
                             <strong>{`${message.role}: `}</strong>
+
+                            {/* <ReactMarkdown components={{
+                                ol({ children }) {
+                                    return (
+                                        <ol className="list-inside list-decimal">{children}</ol>
+                                    )
+                                },
+                                ul({ children }) {
+                                    return (
+                                        (<ul className="list-inside list-disc">
+                                            {children}
+                                        </ul>)
+                                    )
+                                },
+                            }}>
+                                {message.content}
+                            </ReactMarkdown> */}
+
                             {message.parts.map((part, index) => {
                                 switch (part.type) {
                                     case 'step-start':
