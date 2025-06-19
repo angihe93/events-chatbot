@@ -24,6 +24,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "../components/ui/select"
+import { X } from "lucide-react";
 
 export default function SavedEvents() {
 
@@ -33,6 +34,7 @@ export default function SavedEvents() {
 
     const [events, setEvents] = useState<SavedEvent[]>([])
     const [sortBy, setSortBy] = useState<"eventDateTimeAsc" | "eventDateTimeDesc" | "addedDateTimeAsc" | "addedDateTimeDesc">()
+    const [unsaveClickFlag, setUnsaveClickFlag] = useState(false)
 
     useEffect(() => {
         const fetchEvents = async () => {
@@ -46,7 +48,7 @@ export default function SavedEvents() {
             setEvents(result.data)
         }
         fetchEvents()
-    }, [])
+    }, [unsaveClickFlag])
 
     function parseEventDate(str: string, year = new Date().getFullYear()) {
         // Handles: "Fri, Jun 20, 9:00 – 10:45 PM", "Fri, Jun 20, 6 PM", "Sun, Jun 22, 11 AM – 9 PM"
@@ -106,14 +108,32 @@ export default function SavedEvents() {
         return (
             <Card className="w-full max-w-sm" key={event.name + String(event.createdAt)}>
                 <CardHeader>
-                    <CardTitle>{event.name}</CardTitle>
-                    <CardDescription className={cn("text-sm !text-black")}>{event.dateTime}</CardDescription>
-                    <CardDescription>{event.description}</CardDescription>
-                    <CardDescription><a href={event.link}>Link</a></CardDescription>
-                    {/* <CardAction>unsave</CardAction> */}
-                    <CardDescription>{event.createdAt.toLocaleString()}</CardDescription>
+                    <div className="flex justify-between items-start">
+                        <div className="flex flex-col gap-2">
+                            <CardTitle>{event.name}</CardTitle>
+                            <CardDescription className={cn("text-sm !text-black")}>{event.dateTime}</CardDescription>
+                            <CardDescription>{event.description}</CardDescription>
+                            <CardDescription>
+                                <a href={event.link} className="underline">Link</a>
+                            </CardDescription>
+                        </div>
+                        <CardAction><button title="Unsave event" onClick={() => unsaveEvent(event)}>
+                            <X size={18} /></button>
+                        </CardAction>
+                    </div>
                 </CardHeader>
             </Card>)
+    }
+
+
+    const unsaveEvent = async (event: SavedEvent) => {
+        const { name, description, dateTime, location, link } = event;
+        await fetch('/api/save-event', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, description, dateTime, location, link }),
+        })
+        setUnsaveClickFlag(!unsaveClickFlag)
     }
 
 
