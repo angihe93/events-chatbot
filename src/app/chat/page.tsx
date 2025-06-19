@@ -62,16 +62,21 @@ export default function Page() {
     const router = useRouter()
 
     return (
-        <>
-            <div className="mx-25 my-25">
-                <div className="flex justify-between">
-                    <button onClick={() => router.push('/saved-events')} className="flex items-center gap-2">
+        <div className="bg-muted">
+            <div className="mx-25 my-25 bg-muted">
+                {/* <div className="flex justify-between fixed top-4"> */}
+                {/* top bar fixed so it's always visible */}
+                {/* <div className="fixed h-20 top-0 left-0 right-0 flex justify-between px-6 z-50 bg-muted"> */}
+                <div className="fixed h-20 top-0 left-0 right-0 flex justify-between items-center px-6 z-50 bg-white">
+                    <button onClick={() => router.push('/saved-events')} className="flex items-center gap-2 border">
                         <Bookmark className="size-4" />Saved Events
                     </button>
-                    <Logout />
+                    <div><Logout /></div>
+
+
                 </div>
 
-                <main className="flex min-h-screen flex-col items-center gap-4 mt-20">
+                <main className="flex min-h-screen flex-col items-center gap-4 mt-20 pt-20">
                     {/* // justify-center  mx-25 my-25" > */}
                     <h3>{trpcHelloResult.data?.greeting}</h3>
                     <button onClick={() => createChat.mutate()} disabled={createChat.isPending}>
@@ -98,6 +103,6 @@ export default function Page() {
                     )}
                 </main>
             </div>
-        </>
+        </div>
     );
 }
