@@ -4,7 +4,7 @@ import { createIdGenerator } from 'ai';
 import { type Message, useChat } from '@ai-sdk/react';
 import { deleteLastMessage } from '~/lib/data';
 import { useEffect, useRef, useState } from 'react';
-import { RotateCcw } from 'lucide-react';
+import { ArrowUp, RotateCcw } from 'lucide-react';
 import ReactMarkdown from "react-markdown"
 import React from 'react';
 // import isEqual from 'lodash.isequal'
@@ -330,11 +330,15 @@ export default function Chat({
                                         // render text parts as simple text:
                                         // print out id for now for debugging
                                         case 'text': {
-                                            // adjust style for user vs ai
-                                            const msgStyle = message.role === "user" ? "border rounded-lg p-2 text-right ml-auto bg-blue-100" : ""
-                                            // className={msgStyle}
+                                            // dynamically vary padding for ai messages so it looks good for short & long messages
+                                            // console.log("part.text", part.text)
+                                            // console.log("part.text.length", part.text.length)
+                                            const marginSize = part.text.length > 1000 ? '3' : '1'
+                                            // console.log("part.text marginSize", marginSize)
+                                            const margin = message.role === "assistant" ? `p-${marginSize}` : ""
+
                                             return (
-                                                <div key={index} >
+                                                <div key={index} className={margin}>
                                                     {/* use custom component styling */}
                                                     {/* https://github.com/remarkjs/react-markdown?tab=readme-ov-file#appendix-b-components */}
                                                     {/* https://github.com/remarkjs/react-markdown/issues/832 */}
@@ -345,9 +349,11 @@ export default function Chat({
                                                             )
                                                         },
                                                         ul({ children }) {
+                                                            console.log(children)
                                                             return (
                                                                 (<ul className="list-inside list-disc mb-3">
                                                                     {children}
+                                                                    <button>save</button>
                                                                     {/* <button className='border' onClick={() => { console.log(children); console.log(part) }}>save</button> */}
                                                                 </ul>)
                                                             )
@@ -358,6 +364,7 @@ export default function Chat({
                                                             // Check: if only one child and it's a <p>, we can show save button
                                                             // can get all relevant event info from here, including name, description, location, link
                                                             // use to save user liked events
+                                                            // const childP = React.isValidElement(childrenArray[1]) && childrenArray[1].type === 'span'
                                                             const childP = React.isValidElement(childrenArray[1]) && childrenArray[1].type === 'p'
                                                             // console.log(childP)
                                                             const isSaved = checkIfSaved(childrenArray)
@@ -569,9 +576,8 @@ export default function Chat({
                     </div>}
 
                 <form ref={formRef} onSubmit={handleSubmit}>
-                    {/* <input value={input} onChange={handleInputChange} className='border' /> */}
-                    {/* auto expand text box to fit input text: */}
-                    <div className='w-[60vw]'>
+                    {/* auto expand text box to fit input text */}
+                    <div className='w-[40vw] flex gap-2'>
                         <textarea
                             value={input}
                             onChange={handleInputChange}
@@ -589,7 +595,7 @@ export default function Chat({
                                 }
                             }}
                         />
-                        {/* {<button><ArrowUp /></button>} */}
+                        <button type="submit"><ArrowUp /></button>
                     </div>
                 </form>
             </div >
