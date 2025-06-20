@@ -306,243 +306,229 @@ export default function Chat({
     // tutorial 3
     return (
         <>
-            <div className="container flex flex-col items-center justify-center gap-6 px-10 py-16">
+            <div className="container flex flex-col items-center justify-center gap-6 px-10 py-16 w-[60%]">
                 messages
                 {messages?.sort((a, b) => a.createdAt!.getTime() - b.createdAt!.getTime())
-                    .map(message => (
-                        <div key={message.id}>
-                            <strong>{`${message.role}: `}</strong>
+                    .map(message => {
+                        const style =
+                            message.role === "user"
+                                ? " bg-blue-100" // "ml-auto mr-8 bg-blue-100"
+                                : "bg-gray-200 mb-4"
 
-                            {/* <ReactMarkdown components={{
-                                ol({ children }) {
-                                    return (
-                                        <ol className="list-inside list-decimal">{children}</ol>
-                                    )
-                                },
-                                ul({ children }) {
-                                    return (
-                                        (<ul className="list-inside list-disc">
-                                            {children}
-                                        </ul>)
-                                    )
-                                },
-                            }}>
-                                {message.content}
-                            </ReactMarkdown> */}
+                        return (
+                            <div key={message.id} className={`p-1.5 pl-4 pr-4 rounded-lg flex items-center text-left max-w-[80%] ${style}`}>
+                                {message.parts.map((part, index) => {
+                                    switch (part.type) {
+                                        case 'step-start':
+                                            // show step boundaries as horizontal lines:
+                                            return index > 0 ? (
+                                                <div key={index} className="text-gray-500">
+                                                    <hr className="my-2 border-gray-300" />
+                                                </div>
+                                            ) : null;
 
-                            {message.parts.map((part, index) => {
-                                switch (part.type) {
-                                    case 'step-start':
-                                        // show step boundaries as horizontal lines:
-                                        return index > 0 ? (
-                                            <div key={index} className="text-gray-500">
-                                                <hr className="my-2 border-gray-300" />
-                                            </div>
-                                        ) : null;
+                                        // render text parts as simple text:
+                                        // print out id for now for debugging
+                                        case 'text': {
+                                            // adjust style for user vs ai
+                                            const msgStyle = message.role === "user" ? "border rounded-lg p-2 text-right ml-auto bg-blue-100" : ""
+                                            // className={msgStyle}
+                                            return (
+                                                <div key={index} >
+                                                    {/* use custom component styling */}
+                                                    {/* https://github.com/remarkjs/react-markdown?tab=readme-ov-file#appendix-b-components */}
+                                                    {/* https://github.com/remarkjs/react-markdown/issues/832 */}
+                                                    <ReactMarkdown components={{
+                                                        ol({ children }) {
+                                                            return (
+                                                                <ol className="list-inside list-decimal mt-3">{children}</ol>
+                                                            )
+                                                        },
+                                                        ul({ children }) {
+                                                            return (
+                                                                (<ul className="list-inside list-disc mb-3">
+                                                                    {children}
+                                                                    {/* <button className='border' onClick={() => { console.log(children); console.log(part) }}>save</button> */}
+                                                                </ul>)
+                                                            )
+                                                        },
+                                                        li({ children }) {
+                                                            const childrenArray = React.Children.toArray(children)
+                                                            // console.log(childrenArray)
+                                                            // Check: if only one child and it's a <p>, we can show save button
+                                                            // can get all relevant event info from here, including name, description, location, link
+                                                            // use to save user liked events
+                                                            const childP = React.isValidElement(childrenArray[1]) && childrenArray[1].type === 'p'
+                                                            // console.log(childP)
+                                                            const isSaved = checkIfSaved(childrenArray)
+                                                            const style = isSaved ? 'border bg-red-100' : 'border'
+                                                            return (
+                                                                <li>{children}{childP && <button className={style} onClick={() => handleSaveEvent(childrenArray)}>{isSaved ? 'saved' : 'save'}</button>}</li>
+                                                            )
+                                                        },
+                                                        a: ({ node, ...props }) => (
+                                                            <a {...props} className="underline text-blue-600 hover:text-blue-800" />
+                                                        ),
+                                                        p: ({ children }) => {
+                                                            return (<span>{children}</span>)
+                                                        }
+                                                    }}>
+                                                        {part.text}
+                                                    </ReactMarkdown>
+                                                </div>)
+                                        }
 
-                                    // render text parts as simple text:
-                                    // print out id for now for debugging
-                                    case 'text': {
-                                        // console.log("return text", part.text)
-                                        // return message.id + part.text;
-                                        return <div key={index}>
-                                            {/* use custom component styling */}
-                                            {/* https://github.com/remarkjs/react-markdown?tab=readme-ov-file#appendix-b-components */}
-                                            {/* https://github.com/remarkjs/react-markdown/issues/832 */}
-                                            <ReactMarkdown components={{
-                                                ol({ children }) {
-                                                    return (
-                                                        <ol className="list-inside list-decimal">{children}</ol>
-                                                    )
-                                                },
-                                                ul({ children }) {
-                                                    return (
-                                                        (<ul className="list-inside list-disc">
-                                                            {children}
-                                                            {/* <button className='border' onClick={() => { console.log(children); console.log(part) }}>save</button> */}
-                                                        </ul>)
-                                                    )
-                                                },
-                                                li({ children }) {
-                                                    const childrenArray = React.Children.toArray(children)
-                                                    // console.log(childrenArray)
-                                                    // Check: if only one child and it's a <p>, we can show save button
-                                                    // can get all relevant event info from here, including name, description, location, link
-                                                    // use to save user liked events
-                                                    const childP = React.isValidElement(childrenArray[1]) && childrenArray[1].type === 'p'
-                                                    // console.log(childP)
-                                                    const isSaved = checkIfSaved(childrenArray)
-                                                    const style = isSaved ? 'border bg-red-100' : 'border'
-                                                    return (
-                                                        <li>{children}{childP && <button className={style} onClick={() => handleSaveEvent(childrenArray)}>{isSaved ? 'saved' : 'save'}</button>}</li>
-                                                    )
-                                                },
-                                                a: ({ node, ...props }) => (
-                                                    <a {...props} className="underline text-blue-600 hover:text-blue-800" />
-                                                ),
-                                            }}>
-                                                {message.id + part.text}
-                                            </ReactMarkdown>
-                                        </div>
-                                    }
+                                        // for tool invocations, distinguish between the tools and the state:
+                                        case 'tool-invocation': {
+                                            const callId = part.toolInvocation.toolCallId;
 
-                                    // for tool invocations, distinguish between the tools and the state:
-                                    case 'tool-invocation': {
-                                        const callId = part.toolInvocation.toolCallId;
-
-                                        switch (part.toolInvocation.toolName) {
-                                            case 'askForConfirmation': {
-                                                switch (part.toolInvocation.state) {
-                                                    case 'call':
-                                                        return (
-                                                            <div key={callId}>
-                                                                {/* {part.toolInvocation.args.message} */}
-                                                                {typeof part.toolInvocation.args === "object" &&
-                                                                    part.toolInvocation.args !== null &&
-                                                                    "message" in part.toolInvocation.args
-                                                                    ? (part.toolInvocation.args as { message: string }).message
-                                                                    : null}
-                                                                <div>
-                                                                    <button
-                                                                        onClick={() =>
-                                                                            addToolResult({
-                                                                                toolCallId: callId,
-                                                                                result: 'Yes, confirmed.',
-                                                                            })
-                                                                        }
-                                                                    >
-                                                                        Yes
-                                                                    </button>
-                                                                    <button
-                                                                        onClick={() =>
-                                                                            addToolResult({
-                                                                                toolCallId: callId,
-                                                                                result: 'No, denied',
-                                                                            })
-                                                                        }
-                                                                    >
-                                                                        No
-                                                                    </button>
+                                            switch (part.toolInvocation.toolName) {
+                                                case 'askForConfirmation': {
+                                                    switch (part.toolInvocation.state) {
+                                                        case 'call':
+                                                            return (
+                                                                <div key={callId}>
+                                                                    {/* {part.toolInvocation.args.message} */}
+                                                                    {typeof part.toolInvocation.args === "object" &&
+                                                                        part.toolInvocation.args !== null &&
+                                                                        "message" in part.toolInvocation.args
+                                                                        ? (part.toolInvocation.args as { message: string }).message
+                                                                        : null}
+                                                                    <div>
+                                                                        <button
+                                                                            onClick={() =>
+                                                                                addToolResult({
+                                                                                    toolCallId: callId,
+                                                                                    result: 'Yes, confirmed.',
+                                                                                })
+                                                                            }
+                                                                        >
+                                                                            Yes
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() =>
+                                                                                addToolResult({
+                                                                                    toolCallId: callId,
+                                                                                    result: 'No, denied',
+                                                                                })
+                                                                            }
+                                                                        >
+                                                                            No
+                                                                        </button>
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                        );
-                                                    case 'result':
-                                                        return (
-                                                            <div key={callId}>
-                                                                Location access allowed:{' '}
-                                                                {part.toolInvocation.result}
-                                                            </div>
-                                                        );
+                                                            );
+                                                        case 'result':
+                                                            return (
+                                                                <div key={callId}>
+                                                                    Location access allowed:{' '}
+                                                                    {part.toolInvocation.result}
+                                                                </div>
+                                                            );
+                                                    }
+                                                    break;
                                                 }
-                                                break;
-                                            }
 
-                                            case 'getLocation': {
-                                                switch (part.toolInvocation.state) {
-                                                    case 'call':
-                                                        return <div key={callId}>Getting location...</div>;
-                                                    case 'result':
-                                                        return (
-                                                            <div key={callId}>
-                                                                Location: {part.toolInvocation.result}
-                                                            </div>
-                                                        );
+                                                case 'getLocation': {
+                                                    switch (part.toolInvocation.state) {
+                                                        case 'call':
+                                                            return <div key={callId}>Getting location...</div>;
+                                                        case 'result':
+                                                            return (
+                                                                <div key={callId}>
+                                                                    Location: {part.toolInvocation.result}
+                                                                </div>
+                                                            );
+                                                    }
+                                                    break;
                                                 }
-                                                break;
-                                            }
 
-                                            case 'getWeatherInformation': {
-                                                switch (part.toolInvocation.state) {
-                                                    // example of pre-rendering streaming tool calls:
-                                                    case 'partial-call':
-                                                        return (
-                                                            <pre key={callId}>
-                                                                {JSON.stringify(part.toolInvocation, null, 2)}
-                                                            </pre>
-                                                        );
-                                                    case 'call':
-                                                        return (
-                                                            <div key={callId}>
-                                                                Getting weather information for{' '}
-                                                                {typeof part.toolInvocation.args === "object" &&
-                                                                    part.toolInvocation.args !== null &&
-                                                                    "city" in part.toolInvocation.args
-                                                                    ? (part.toolInvocation.args as { city: string }).city
-                                                                    : null}...
-                                                                {/* {part.toolInvocation.args.city}... */}
-                                                            </div>
-                                                        );
-                                                    case 'result':
-                                                        return (
-                                                            <div key={callId}>
-                                                                Weather in {typeof part.toolInvocation.args === "object" &&
-                                                                    part.toolInvocation.args !== null &&
-                                                                    "city" in part.toolInvocation.args
-                                                                    ? (part.toolInvocation.args as { city: string }).city
-                                                                    : null}:{' '}
-                                                                {part.toolInvocation.result}
-                                                            </div>
-                                                        );
+                                                case 'getWeatherInformation': {
+                                                    switch (part.toolInvocation.state) {
+                                                        // example of pre-rendering streaming tool calls:
+                                                        case 'partial-call':
+                                                            return (
+                                                                <pre key={callId}>
+                                                                    {JSON.stringify(part.toolInvocation, null, 2)}
+                                                                </pre>
+                                                            );
+                                                        case 'call':
+                                                            return (
+                                                                <div key={callId}>
+                                                                    Getting weather information for{' '}
+                                                                    {typeof part.toolInvocation.args === "object" &&
+                                                                        part.toolInvocation.args !== null &&
+                                                                        "city" in part.toolInvocation.args
+                                                                        ? (part.toolInvocation.args as { city: string }).city
+                                                                        : null}...
+                                                                    {/* {part.toolInvocation.args.city}... */}
+                                                                </div>
+                                                            );
+                                                        case 'result':
+                                                            return (
+                                                                <div key={callId}>
+                                                                    Weather in {typeof part.toolInvocation.args === "object" &&
+                                                                        part.toolInvocation.args !== null &&
+                                                                        "city" in part.toolInvocation.args
+                                                                        ? (part.toolInvocation.args as { city: string }).city
+                                                                        : null}:{' '}
+                                                                    {part.toolInvocation.result}
+                                                                </div>
+                                                            );
+                                                    }
+                                                    break;
                                                 }
-                                                break;
-                                            }
-                                            case 'getEvents': {
-                                                switch (part.toolInvocation.state) {
-                                                    case 'partial-call':
-                                                        return (
-                                                            <div key={callId}>
-                                                                Getting events info for {typeof part.toolInvocation.args === "object" &&
-                                                                    part.toolInvocation.args !== null &&
-                                                                    "query" in part.toolInvocation.args
-                                                                    ? (part.toolInvocation.args as { query: string }).query
-                                                                    : null}:{' '}...
-                                                                {/* {part.toolInvocation.query} */}
-                                                            </div>
-                                                        );
+                                                case 'getEvents': {
+                                                    switch (part.toolInvocation.state) {
+                                                        case 'partial-call':
+                                                            return (
+                                                                <div key={callId}>
+                                                                    Getting events info for {typeof part.toolInvocation.args === "object" &&
+                                                                        part.toolInvocation.args !== null &&
+                                                                        "query" in part.toolInvocation.args
+                                                                        ? (part.toolInvocation.args as { query: string }).query
+                                                                        : null}:{' '}...
+                                                                    {/* {part.toolInvocation.query} */}
+                                                                </div>
+                                                            );
+                                                    }
+                                                    if (part.toolInvocation.state === 'result') {
+                                                        console.log("toolInvoation.result", part.toolInvocation.result);
+                                                    }
+                                                    return (
+                                                        <div key={callId}>
+                                                            <p>{part.toolInvocation.args}</p>
+                                                            {part.toolInvocation.state === 'result' && (
+                                                                // <p>{part.toolInvocation.result}</p>
+                                                                <ReactMarkdown>{part.toolInvocation.result}</ReactMarkdown>
+                                                            )}
+                                                        </div>
+                                                    );
                                                 }
-                                                if (part.toolInvocation.state === 'result') {
-                                                    console.log("toolInvoation.result", part.toolInvocation.result);
-                                                }
-                                                return (
-                                                    <div key={callId}>
-                                                        <p>{part.toolInvocation.args}</p>
-                                                        {part.toolInvocation.state === 'result' && (
-                                                            // <p>{part.toolInvocation.result}</p>
-                                                            <ReactMarkdown>{part.toolInvocation.result}</ReactMarkdown>
-                                                        )}
-                                                    </div>
-                                                );
-                                            }
-                                            case 'addResource': {
-                                                switch (part.toolInvocation.state) {
-                                                    case 'partial-call':
-                                                        // const toolInvocation = part.toolInvocation as {toolName: string; state: string; args?: any; result?: any; toolCallId?: string }
-                                                        const toolInvocation = part.toolInvocation as { toolName: string; state: string; toolCallId?: string }
-                                                        return (
-                                                            <div key={callId}>
-                                                                {/* called {part.toolInvocation?.args?.toolName} */}
-                                                                called {toolInvocation.toolName}
-                                                            </div>
-                                                        )
+                                                case 'addResource': {
+                                                    switch (part.toolInvocation.state) {
+                                                        case 'partial-call':
+                                                            // const toolInvocation = part.toolInvocation as {toolName: string; state: string; args?: any; result?: any; toolCallId?: string }
+                                                            const toolInvocation = part.toolInvocation as { toolName: string; state: string; toolCallId?: string }
+                                                            return (
+                                                                <div key={callId}>
+                                                                    {/* called {part.toolInvocation?.args?.toolName} */}
+                                                                    called {toolInvocation.toolName}
+                                                                </div>
+                                                            )
+                                                    }
                                                 }
                                             }
                                         }
-                                        // switch (part.toolInvocation.state) {
-                                        //     case 'partial-call':
-                                        //         return <>render partial tool call</>;
-                                        //     case 'call':
-                                        //         return <>render full tool call</>;
-                                        //     case 'result':
-                                        //         return <>render tool result</>;
-                                        // }
+                                        default:
+                                            return null;
                                     }
-                                    default:
-                                        return null;
-                                }
-                            })}
-                            <br />
-                        </div>
-                    ))}
+                                })}
+                                <br />
+                            </div>
+                        )
+                    }
+                    )}
 
                 {/* if last message has invoked searchEvents tool, show button for generate more suggestions */}
                 {status === 'ready' && messages && messages[messages.length - 1]?.parts.some(
