@@ -16,7 +16,7 @@ export async function GET(req: Request) {
 
     // console.log("inside saveEvent", userId, name, description, dateTime, location, link);
     const result = await getSavedEvents(userId)
-    console.log("result", result)
+    // console.log("result", result)
 
     return NextResponse.json({ success: true, data: result });
 }
