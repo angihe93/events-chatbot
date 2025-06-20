@@ -62,47 +62,55 @@ export default function Page() {
     const router = useRouter()
 
     return (
-        <div className="bg-muted">
-            <div className="mx-25 my-25 bg-muted">
-                {/* <div className="flex justify-between fixed top-4"> */}
-                {/* top bar fixed so it's always visible */}
-                {/* <div className="fixed h-20 top-0 left-0 right-0 flex justify-between px-6 z-50 bg-muted"> */}
-                <div className="fixed h-20 top-0 left-0 right-0 flex justify-between items-center px-6 z-50 bg-white">
-                    <button onClick={() => router.push('/saved-events')} className="flex items-center gap-2 border">
-                        <Bookmark className="size-4" />Saved Events
-                    </button>
-                    <div><Logout /></div>
-
-
+        <div className="bg-muted flex flex-col">
+            {/* Fixed top bar */}
+            <div></div>
+            <div className="bg-gray-200 fixed top-0 left-0 right-0 w-full flex justify-between items-center px-6 z-50 h-16">
+                {/* Saved Events button on the left */}
+                <button
+                    onClick={() => router.push('/saved-events')}
+                    className="flex items-center gap-2 border px-3 py-1 rounded bg-gray-300 rounded-md border-gray-500"
+                >
+                    <Bookmark className="size-4" /> Saved Events
+                </button>
+                {/* Logout button on the right */}
+                <div>
+                    <Logout />
                 </div>
-
-                <main className="flex min-h-screen flex-col items-center gap-4 mt-20 pt-20">
-                    {/* // justify-center  mx-25 my-25" > */}
-                    <h3>{trpcHelloResult.data?.greeting}</h3>
-                    <button onClick={() => createChat.mutate()} disabled={createChat.isPending}>
-                        Start chatting
-                    </button>
-
-                    {chatIds.data && chatIds.data.length > 0 &&
-                        <div>
-                            <p>or continue a previous chat:</p>
-                            <div className="max-h-48 overflow-y-auto w-full flex flex-col gap-2 border">
-                                {chatIds.data?.map((i) => <button key={i} onClick={() => setSelectedChat(i)}> {i} </button>)}
-                            </div>
-                        </div>
-                    }
-
-                    {selectedChat && (
-                        isChatLoading ? (
-                            <div>Loading chat...</div>
-                        ) : chatData?.messages ? (
-                            <Chat id={selectedChat} initialMessages={chatData.messages} />
-                        ) : (
-                            <div>No messages found.</div>
-                        )
-                    )}
-                </main>
             </div>
+
+            {/* Main content */}
+            {/* w-full max-w-xl */}
+            <main className="flex min-h-screen flex-col items-center gap-4 mt-20 pt-20 ">
+                {/* Your chat content */}
+                <h3>{trpcHelloResult.data?.greeting}</h3>
+                <button onClick={() => createChat.mutate()} disabled={createChat.isPending}>
+                    Start chatting
+                </button>
+
+                {chatIds.data && chatIds.data.length > 0 && (
+                    <div>
+                        <p>or continue a previous chat:</p>
+                        <div className="max-h-48 overflow-y-auto w-full flex flex-col gap-2 border">
+                            {chatIds.data?.map((i) => (
+                                <button key={i} onClick={() => setSelectedChat(i)}>
+                                    {i}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {selectedChat && (
+                    isChatLoading ? (
+                        <div>Loading chat...</div>
+                    ) : chatData?.messages ? (
+                        <Chat id={selectedChat} initialMessages={chatData.messages} />
+                    ) : (
+                        <div>No messages found.</div>
+                    )
+                )}
+            </main>
         </div>
     );
 }
