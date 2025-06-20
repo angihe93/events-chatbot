@@ -82,10 +82,14 @@ export default function Chat({
         let eventInfo: string[] = []
         for (const item of childrenArray) {
             if (item.props) {
-                // check if its event name or the rest of the <ul>
+                // // check if its event name or the rest of the <ul>
                 if (item.key === ".$p-0") { // event name
-                    const eventName = item.props.children.props.children
-                    eventInfo.push(eventName)
+                    const eventName =
+                        React.isValidElement(item.props.children) &&
+                        item.props.children.props?.children;
+                    if (eventName) {
+                        eventInfo.push(eventName);
+                    }
                 }
                 else if (item.key === ".$ul-0") { // rest of <ul>
                     const innerChildrenArr = item.props.children
@@ -206,7 +210,7 @@ export default function Chat({
                                                         ul({ children }) {
                                                             console.log(children)
                                                             return (
-                                                                (<ul className="list-inside list-disc mb-3">
+                                                                (<ul className="list-inside list-disc">
                                                                     {children}
                                                                     {/* <button>save</button> */}
                                                                     {/* <button className='border' onClick={() => { console.log(children); console.log(part) }}>save</button> */}
@@ -227,8 +231,13 @@ export default function Chat({
                                                                     if (item.props) {
                                                                         // check if its event name or the rest of the <ul>
                                                                         if (item.key === ".$p-0") { // event name
-                                                                            const eventName = item.props.children.props.children
-                                                                            eventInfo.push(eventName)
+                                                                            // Ensure item.props.children is valid before accessing props
+                                                                            const eventName =
+                                                                                React.isValidElement(item.props.children) &&
+                                                                                item.props.children.props?.children;
+                                                                            if (eventName) {
+                                                                                eventInfo.push(eventName);
+                                                                            }
                                                                         }
                                                                         else if (item.key === ".$ul-0") { // rest of <ul>
                                                                             const innerChildrenArr = item.props.children
@@ -254,9 +263,18 @@ export default function Chat({
                                                             }
 
                                                             const isSaved = checkIfSaved(childrenArray)
-                                                            const style = isSaved ? 'border bg-red-100' : 'border'
+                                                            const style = isSaved ? 'bg-red-100' : 'bg-gray-300'
+
+                                                            const isEventName = React.isValidElement(childrenArray[0]) && childrenArray[0].key === ".$p-0"
+                                                            // sections for each numbered item, fully contain
+
                                                             return (
-                                                                <li>{children}{placeButton && <button className={'mb-3 ' + style} onClick={() => handleSaveEvent(childrenArray)}>{isSaved ? 'saved' : 'save'}</button>}</li>
+                                                                <li>
+                                                                    {Array.isArray(children) && children.length > 0 ? children[0] : children}
+                                                                    {placeButton && <button className={'mb-3 border rounded-lg p-1 mx-1 ' + style} onClick={() => handleSaveEvent(childrenArray)}>{isSaved ? 'saved' : 'save'}</button>}
+                                                                    {Array.isArray(children) ? children.slice(1) : null}
+                                                                </li>
+                                                                // <li>{children}{placeButton && <div className="flex justify-center"><button className={'mb-3 border rounded-lg p-1 ' + style} onClick={() => handleSaveEvent(childrenArray)}>{isSaved ? 'saved' : 'save'}</button></div>}</li>
                                                             )
                                                         },
                                                         a: ({ node, ...props }) => (
