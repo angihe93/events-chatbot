@@ -4,7 +4,7 @@ import { createIdGenerator } from 'ai';
 import { type Message, useChat } from '@ai-sdk/react';
 import { deleteLastMessage } from '~/lib/data';
 import { useEffect, useRef, useState } from 'react';
-import { ArrowUp, RotateCcw } from 'lucide-react';
+import { ArrowUp, Bookmark, RotateCcw } from 'lucide-react';
 import ReactMarkdown from "react-markdown"
 import React from 'react';
 // import isEqual from 'lodash.isequal'
@@ -263,15 +263,16 @@ export default function Chat({
                                                             }
 
                                                             const isSaved = checkIfSaved(childrenArray)
-                                                            const style = isSaved ? 'bg-red-100' : 'bg-gray-300'
+                                                            // const style = isSaved ? 'bg-red-100' : 'bg-gray-300'
+                                                            const style = ""
 
                                                             const isEventName = React.isValidElement(childrenArray[0]) && childrenArray[0].key === ".$p-0"
                                                             // sections for each numbered item, fully contain
 
                                                             return (
-                                                                <li>
+                                                                <li className={placeButton ? "mb-3" : ""}>
                                                                     {Array.isArray(children) && children.length > 0 ? children[0] : children}
-                                                                    {placeButton && <button className={'mb-3 border rounded-lg p-1 mx-1 ' + style} onClick={() => handleSaveEvent(childrenArray)}>{isSaved ? 'saved' : 'save'}</button>}
+                                                                    {placeButton && <button className={'border rounded-lg p-1 mx-1 ' + style} onClick={() => handleSaveEvent(childrenArray)}>{isSaved ? <Bookmark className="size-4" fill="#ff6251" /> : <Bookmark className="size-4" />}</button>}
                                                                     {Array.isArray(children) ? children.slice(1) : null}
                                                                 </li>
                                                                 // <li>{children}{placeButton && <div className="flex justify-center"><button className={'mb-3 border rounded-lg p-1 ' + style} onClick={() => handleSaveEvent(childrenArray)}>{isSaved ? 'saved' : 'save'}</button></div>}</li>
