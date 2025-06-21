@@ -108,16 +108,9 @@ export default function Page() {
                     <div>
                         <p>or continue a previous chat:</p>
                         <div className="max-h-48 overflow-y-auto w-full flex flex-col gap-2 border">
-                            {/* {chatIds.data?.map((i) => (
-                                <button key={i} onClick={() => setSelectedChat(i)}>
-                                    {i}
-                                </button>
-                            ))} */}
-                            {/* onst lastUserMessage = [...messages]
-                    .sort((a, b) => b.createdAt!.getTime() - a.createdAt!.getTime()) */}
                             {chatTimeMap?.sort((a, b) => b.createdAt!.getTime() - a.createdAt!.getTime()).map((i) => (
                                 <button key={i.id} onClick={() => setSelectedChat(i.id)}>
-                                    {i.id + "slug:" + chatSlugMap.find((c) => c.id === i.id)?.slug}
+                                    {chatSlugMap.find((c) => c.id === i.id)?.slug ? chatSlugMap.find((c) => c.id === i.id)?.slug : `Chat created at ${chatTimeMap.find((c) => c.id === i.id)?.createdAt.toLocaleString()}`}
                                 </button>
                             ))}
                         </div>
