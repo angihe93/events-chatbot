@@ -1,7 +1,7 @@
 'use client';
 
 import { useChat } from '@ai-sdk/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Logout } from '~/components/logout';
 import Chat from '~/components/ui/chat';
 import { api } from "~/trpc/react"
@@ -15,7 +15,7 @@ import { Bookmark } from 'lucide-react';
 // }
 
 export default function Page() {
-    const { messages, setMessages, input, handleInputChange, handleSubmit, status, stop, error, reload } = useChat({
+    const { error } = useChat({
         onFinish: (message, { usage, finishReason }) => {
             console.log('Finished streaming message:', message);
             console.log('Token usage:', usage);
@@ -30,10 +30,10 @@ export default function Page() {
     });
     console.log(error)
 
-    const handleDelete = (id: string) => {
-        // can think of messages and setMessages as a pair of state and setState in React
-        setMessages(messages.filter(message => message.id !== id))
-    }
+    // const handleDelete = (id: string) => {
+    //     // can think of messages and setMessages as a pair of state and setState in React
+    //     setMessages(messages.filter(message => message.id !== id))
+    // }
 
     // custom input,  use more granular APIs like setInput and append with your custom input and submit button components: https://ai-sdk.dev/docs/ai-sdk-ui/chatbot#controlled-input
     // https://ai-sdk.dev/docs/ai-sdk-ui/chatbot#custom-headers-body-and-credentials
@@ -60,44 +60,51 @@ export default function Page() {
     );
 
     const router = useRouter()
+    // router.push('/chat')
+    useEffect(() => {
+        // Redirect to /chat page
+        router.push('/chat');
+    }, [router]);
 
-    return (
-        <>
-            <div className="mx-25 my-25">
-                <div className="flex justify-between">
-                    <button onClick={() => router.push('/saved-events')} className="flex items-center gap-2">
-                        <Bookmark className="size-4" />Saved Events
-                    </button>
-                    <Logout />
-                </div>
+    return (<></>)
 
-                <main className="flex min-h-screen flex-col items-center gap-4 mt-20">
-                    {/* // justify-center  mx-25 my-25" > */}
-                    <h3>{trpcHelloResult.data?.greeting}</h3>
-                    <button onClick={() => createChat.mutate()} disabled={createChat.isPending}>
-                        Start chatting
-                    </button>
+    //     return (
+    //         <>
+    //             <div className="mx-25 my-25">
+    //                 <div className="flex justify-between">
+    //                     <button onClick={() => router.push('/saved-events')} className="flex items-center gap-2">
+    //                         <Bookmark className="size-4" />Saved Events
+    //                     </button>
+    //                     <Logout />
+    //                 </div>
 
-                    {chatIds.data && chatIds.data.length > 0 &&
-                        <div>
-                            <p>or continue a previous chat:</p>
-                            <div className="max-h-48 overflow-y-auto w-full flex flex-col gap-2 border">
-                                {chatIds.data?.map((i) => <button key={i} onClick={() => setSelectedChat(i)}> {i} </button>)}
-                            </div>
-                        </div>
-                    }
+    //                 <main className="flex min-h-screen flex-col items-center gap-4 mt-20">
+    //                     {/* // justify-center  mx-25 my-25" > */}
+    //                     <h3>{trpcHelloResult.data?.greeting}</h3>
+    //                     <button onClick={() => createChat.mutate()} disabled={createChat.isPending}>
+    //                         Start chatting
+    //                     </button>
 
-                    {selectedChat && (
-                        isChatLoading ? (
-                            <div>Loading chat...</div>
-                        ) : chatData?.messages ? (
-                            <Chat id={selectedChat} initialMessages={chatData.messages} />
-                        ) : (
-                            <div>No messages found.</div>
-                        )
-                    )}
-                </main>
-            </div>
-        </>
-    );
+    //                     {chatIds.data && chatIds.data.length > 0 &&
+    //                         <div>
+    //                             <p>or continue a previous chat:</p>
+    //                             <div className="max-h-48 overflow-y-auto w-full flex flex-col gap-2 border">
+    //                                 {chatIds.data?.map((i) => <button key={i} onClick={() => setSelectedChat(i)}> {i} </button>)}
+    //                             </div>
+    //                         </div>
+    //                     }
+
+    //                     {selectedChat && (
+    //                         isChatLoading ? (
+    //                             <div>Loading chat...</div>
+    //                         ) : chatData?.messages ? (
+    //                             <Chat id={selectedChat} initialMessages={chatData.messages} />
+    //                         ) : (
+    //                             <div>No messages found.</div>
+    //                         )
+    //                     )}
+    //                 </main>
+    //             </div>
+    //         </>
+    //     );
 }

@@ -3,13 +3,13 @@
 // import { headers } from "next/headers";
 // import { redirect } from "next/navigation";
 // import { auth } from "~/lib/auth";
-import { getSavedEvents } from "~/server/db/db";
+// import { getSavedEvents } from "~/server/db/db";
 import {
     Card,
     CardAction,
-    CardContent,
+    // CardContent,
     CardDescription,
-    CardFooter,
+    // CardFooter,
     CardHeader,
     CardTitle,
 } from "../components/ui/card"
@@ -20,7 +20,7 @@ import {
     SelectContent,
     SelectGroup,
     SelectItem,
-    SelectLabel,
+    // SelectLabel,
     SelectTrigger,
     SelectValue,
 } from "../components/ui/select"
@@ -32,22 +32,52 @@ export default function SavedEvents() {
         | { name: string | undefined; dateTime: string | undefined; location: string | undefined; link: string | undefined; description?: undefined; createdAt: Date }
         | { name: string | undefined; description: string | undefined; dateTime: string | undefined; location: string | undefined; link: string | undefined; createdAt: Date };
 
+    type apiEvent = {
+        id: string;
+        name: string;
+        description: string | null;
+        dateTime: string | null;
+        location: string | null;
+        link: string | null;
+        userId: string;
+        createdAt: Date;
+    }
+    type apiResponse = {
+        success: boolean;
+        data: apiEvent[]
+    }
+
+    //     getSavedEvents(userId: string): Promise<{
+    //     id: string;
+    //     name: string;
+    //     description: string | null;
+    //     dateTime: string | null;
+    //     location: string | null;
+    //     link: string | null;
+    //     userId: string;
+    //     createdAt: Date;
+    // }[]>
+
     const [events, setEvents] = useState<SavedEvent[]>([])
     const [sortBy, setSortBy] = useState<"eventDateTimeAsc" | "eventDateTimeDesc" | "addedDateTimeAsc" | "addedDateTimeDesc">()
     const [unsaveClickFlag, setUnsaveClickFlag] = useState(false)
 
     useEffect(() => {
         const fetchEvents = async () => {
-            const response = await fetch('/api/save-event/get-saved-events', {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/json' },
-            });
-            const result = await response.json();
+            try {
+                const response = await fetch('/api/save-event/get-saved-events', {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' },
+                });
+                const result = await response.json() as apiResponse;
 
-            console.log("api response", result)
-            setEvents(result.data)
+                console.log("api response", result)
+                setEvents(result.data as SavedEvent[])
+            } catch (error) {
+                console.error("Failed to fetch events:", error);
+            }
         }
-        fetchEvents()
+        void fetchEvents()
     }, [unsaveClickFlag])
 
     function parseEventDate(str: string, year = new Date().getFullYear()) {

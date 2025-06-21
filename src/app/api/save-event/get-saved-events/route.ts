@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { NextResponse } from 'next/server';
 import { getSavedEvents } from '~/server/db/db';
 
-export async function GET(req: Request) {
+export async function GET(_: Request) {
     const session = await auth.api.getSession({
         headers: await headers(),
     });

@@ -61,7 +61,7 @@ export default function Chat({
                 // await deleteMessage(lastMsgId)
                 await deleteLastMessage(id!)
                 await reload()
-            } catch (error) { } finally { }
+            } catch (_) { } finally { }
         }
     }
 
@@ -69,41 +69,69 @@ export default function Chat({
         console.log("clicked more suggestions");
         const lastUserMsg = [...messages].reverse().find(m => m.role === 'user')
         console.log("lastUserMsg", lastUserMsg)
-        if (lastUserMsg && lastUserMsg.parts && lastUserMsg.parts[0] && 'text' in lastUserMsg.parts[0]) {
-            console.log("'text' in lastUserMsg.parts[0]", 'text' in lastUserMsg.parts[0])
-            append({ role: 'user', content: lastUserMsg.parts[0].text })
+        const firstPart = lastUserMsg?.parts?.[0];
+        if (firstPart && firstPart.type === 'text') {
+            console.log("'text' in lastUserMsg.parts[0]", 'text' in firstPart)
+            await append({ role: 'user', content: firstPart.text })
         }
     }
 
     const [saveEventClickFlag, setSaveEventClickFlag] = useState(false)
 
-    const handleSaveEvent = async (childrenArray: any[]) => {
+    type ChildItem = {
+        key?: string;
+        props?: {
+            children?: React.ReactNode | { props?: { children?: string } };
+        };
+    }
 
-        let eventInfo: string[] = []
+    // type InnerChildItem = {
+    //     React.ReactNode | {
+    //     props?: {
+    //         children?: string;
+    //     };
+    // }
+    // }
+
+    const handleSaveEvent = async (childrenArray: ChildItem[]) => {
+        const eventInfo: string[] = []
         for (const item of childrenArray) {
             if (item.props) {
                 // // check if its event name or the rest of the <ul>
                 if (item.key === ".$p-0") { // event name
                     const eventName =
                         React.isValidElement(item.props.children) &&
-                        item.props.children.props?.children;
-                    if (eventName) {
+                        typeof item.props.children === 'object' &&
+                        'props' in item.props.children &&
+                        (item.props.children as { props?: { children?: unknown } }).props?.children;
+                    if (typeof eventName === 'string') {
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                         eventInfo.push(eventName);
                     }
                 }
                 else if (item.key === ".$ul-0") { // rest of <ul>
                     const innerChildrenArr = item.props.children
-                    for (const i of innerChildrenArr) {
-                        if (i.props) {
-                            if (React.isValidElement(i.props.children) && i.props.children.props) { // link field
-                                const link = i.props.children.props.href
-                                eventInfo.push(link)
-                                // } else { // other fields
-                            } else if (Array.isArray(i.props.children) && i.props.children.length > 1) { // other fields
-                                const infoItem = i.props.children[1]
-                                eventInfo.push(infoItem)
+                    if (Array.isArray(innerChildrenArr)) {
+                        for (const i of innerChildrenArr) {
+                            if (i && typeof i === 'object' && 'props' in i) {
+                                //  if (React.isValidElement(i) && i.props) {
+                                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
+                                if (React.isValidElement(i.props.children) && i.props.children.props) { // link field
+                                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                                    const link: string = i.props.children.props.href as string
+                                    eventInfo.push(link)
+                                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                                } else if (Array.isArray(i.props.children) && i.props.children.length > 1) { // other fields
+                                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                                    const infoItem: string = i.props.children[1] as string
+                                    eventInfo.push(infoItem)
+                                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                                } else if (i.props.children && typeof i.props.children === 'string') { // other fields
+                                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                                    const infoItem: string = i.props.children as string
+                                    eventInfo.push(infoItem)
+                                }
                             }
-
                         }
                     }
                 }
@@ -145,21 +173,34 @@ export default function Chat({
         | { name: string | undefined; dateTime: string | undefined; location: string | undefined; link: string | undefined; description?: undefined }
         | { name: string | undefined; description: string | undefined; dateTime: string | undefined; location: string | undefined; link: string | undefined };
 
-    const [savedEvents, setSavedEvents] = useState<SavedEvent[]>([]);
+    type apiEvent = {
+        id: string;
+        name: string;
+        description: string | null;
+        dateTime: string | null;
+        location: string | null;
+        link: string | null;
+        userId: string;
+        createdAt: Date;
+    }
+    type apiResponse = {
+        success: boolean;
+        data: apiEvent[]
+    }
+
+    const [savedEvents, setSavedEvents] = useState<apiEvent[]>([]);
     useEffect(() => {
         const fetchSavedEvents = async () => {
             const response = await fetch('/api/save-event/get-saved-events', {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' },
             });
-            const result = await response.json();
+            // const result: apiResponse = await response.json();
+            const result = (await response.json()) as apiResponse
             console.log("api response", result)
-            const events = result.data.map(
-                ({ userId, id, ...rest }: any) => rest
-            )
-            setSavedEvents(events)
+            setSavedEvents(result.data)
         };
-        fetchSavedEvents();
+        void fetchSavedEvents();
     }, [saveEventClickFlag]);
 
 
@@ -225,34 +266,66 @@ export default function Chat({
                                                             const placeButton = React.isValidElement(childrenArray[1]) && childrenArray[1].key === '.$p-0'
 
                                                             // redo checkIfSaved
-                                                            const checkIfSaved = (childrenArray: any) => {
-                                                                let eventInfo: string[] = []
+                                                            const checkIfSaved = (childrenArray: ChildItem[]) => {
+                                                                const eventInfo: string[] = []
                                                                 for (const item of childrenArray) {
                                                                     if (item.props) {
                                                                         // check if its event name or the rest of the <ul>
                                                                         if (item.key === ".$p-0") { // event name
                                                                             // Ensure item.props.children is valid before accessing props
+                                                                            // const eventName =
+                                                                            //     React.isValidElement(item.props.children) &&
+                                                                            //     item.props.children.props?.children;
                                                                             const eventName =
                                                                                 React.isValidElement(item.props.children) &&
-                                                                                item.props.children.props?.children;
-                                                                            if (eventName) {
+                                                                                typeof item.props.children === 'object' &&
+                                                                                'props' in item.props.children &&
+                                                                                (item.props.children as { props?: { children?: unknown } }).props?.children
+                                                                            // if (eventName) {
+                                                                            //     eventInfo.push(eventName);
+                                                                            // }
+                                                                            if (typeof eventName === 'string') {
+                                                                                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                                                                                 eventInfo.push(eventName);
                                                                             }
                                                                         }
                                                                         else if (item.key === ".$ul-0") { // rest of <ul>
                                                                             const innerChildrenArr = item.props.children
-                                                                            for (const i of innerChildrenArr) {
-                                                                                if (i.props) {
-                                                                                    // if (i.props.children.props) { // link field
-                                                                                    if (React.isValidElement(i.props.children) && i.props.children.props) { // link field
-                                                                                        const link = i.props.children.props.href
-                                                                                        eventInfo.push(link)
-                                                                                        // } else { // other fields
-                                                                                    } else if (Array.isArray(i.props.children) && i.props.children.length > 1) { // other fields
-                                                                                        const infoItem = i.props.children[1]
-                                                                                        eventInfo.push(infoItem)
-                                                                                    }
+                                                                            // for (const i of innerChildrenArr) {
+                                                                            //     if (i.props) {
+                                                                            //         // if (i.props.children.props) { // link field
+                                                                            //         if (React.isValidElement(i.props.children) && i.props.children.props) { // link field
+                                                                            //             const link = i.props.children.props.href
+                                                                            //             eventInfo.push(link)
+                                                                            //             // } else { // other fields
+                                                                            //         } else if (Array.isArray(i.props.children) && i.props.children.length > 1) { // other fields
+                                                                            //             const infoItem = i.props.children[1]
+                                                                            //             eventInfo.push(infoItem)
+                                                                            //         }
 
+                                                                            //     }
+                                                                            // }
+                                                                            if (Array.isArray(innerChildrenArr)) {
+                                                                                for (const i of innerChildrenArr) {
+                                                                                    if (i && typeof i === 'object' && 'props' in i) {
+                                                                                        //  if (React.isValidElement(i) && i.props) {
+                                                                                        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
+                                                                                        if (React.isValidElement(i.props.children) && i.props.children.props) { // link field
+                                                                                            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                                                                                            const link: string = i.props.children.props.href as string
+                                                                                            eventInfo.push(link)
+                                                                                            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                                                                                        } else if (Array.isArray(i.props.children) && i.props.children.length > 1) { // other fields
+                                                                                            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                                                                                            const infoItem: string = i.props.children[1] as string
+                                                                                            eventInfo.push(infoItem)
+                                                                                            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                                                                                        } else if (i.props.children && typeof i.props.children === 'string') { // other fields
+                                                                                            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                                                                                            const infoItem: string = i.props.children as string
+                                                                                            eventInfo.push(infoItem)
+                                                                                        }
+                                                                                    }
                                                                                 }
                                                                             }
                                                                         }
@@ -262,7 +335,7 @@ export default function Chat({
                                                                 return savedEvents.some(ev => ev.name === eventInfo[0])
                                                             }
 
-                                                            const isSaved = checkIfSaved(childrenArray)
+                                                            const isSaved = checkIfSaved(childrenArray as ChildItem[])
                                                             // const style = isSaved ? 'bg-red-100' : 'bg-gray-300'
                                                             const style = ""
 
@@ -270,9 +343,9 @@ export default function Chat({
                                                             // sections for each numbered item, fully contain
 
                                                             return (
-                                                                <li className={placeButton ? "mb-3" : ""}>
+                                                                <li className={placeButton ? "mb-3" : ""} >
                                                                     {Array.isArray(children) && children.length > 0 ? children[0] : children}
-                                                                    {placeButton && <button className={'border rounded-lg p-1 mx-1 ' + style} onClick={() => handleSaveEvent(childrenArray)}>{isSaved ? <Bookmark className="size-4" fill="#ff6251" /> : <Bookmark className="size-4" />}</button>}
+                                                                    {placeButton && <button className={'border rounded-lg p-1 mx-1 ' + style} onClick={() => handleSaveEvent(childrenArray as ChildItem[])}>{isSaved ? <Bookmark className="size-4" fill="#b51a00" /> : <Bookmark className="size-4" />}</button>}
                                                                     {Array.isArray(children) ? children.slice(1) : null}
                                                                 </li>
                                                                 // <li>{children}{placeButton && <div className="flex justify-center"><button className={'mb-3 border rounded-lg p-1 ' + style} onClick={() => handleSaveEvent(childrenArray)}>{isSaved ? 'saved' : 'save'}</button></div>}</li>
@@ -295,101 +368,7 @@ export default function Chat({
                                             const callId = part.toolInvocation.toolCallId;
 
                                             switch (part.toolInvocation.toolName) {
-                                                case 'askForConfirmation': {
-                                                    switch (part.toolInvocation.state) {
-                                                        case 'call':
-                                                            return (
-                                                                <div key={callId}>
-                                                                    {/* {part.toolInvocation.args.message} */}
-                                                                    {typeof part.toolInvocation.args === "object" &&
-                                                                        part.toolInvocation.args !== null &&
-                                                                        "message" in part.toolInvocation.args
-                                                                        ? (part.toolInvocation.args as { message: string }).message
-                                                                        : null}
-                                                                    <div>
-                                                                        <button
-                                                                            onClick={() =>
-                                                                                addToolResult({
-                                                                                    toolCallId: callId,
-                                                                                    result: 'Yes, confirmed.',
-                                                                                })
-                                                                            }
-                                                                        >
-                                                                            Yes
-                                                                        </button>
-                                                                        <button
-                                                                            onClick={() =>
-                                                                                addToolResult({
-                                                                                    toolCallId: callId,
-                                                                                    result: 'No, denied',
-                                                                                })
-                                                                            }
-                                                                        >
-                                                                            No
-                                                                        </button>
-                                                                    </div>
-                                                                </div>
-                                                            );
-                                                        case 'result':
-                                                            return (
-                                                                <div key={callId}>
-                                                                    Location access allowed:{' '}
-                                                                    {part.toolInvocation.result}
-                                                                </div>
-                                                            );
-                                                    }
-                                                    break;
-                                                }
 
-                                                case 'getLocation': {
-                                                    switch (part.toolInvocation.state) {
-                                                        case 'call':
-                                                            return <div key={callId}>Getting location...</div>;
-                                                        case 'result':
-                                                            return (
-                                                                <div key={callId}>
-                                                                    Location: {part.toolInvocation.result}
-                                                                </div>
-                                                            );
-                                                    }
-                                                    break;
-                                                }
-
-                                                case 'getWeatherInformation': {
-                                                    switch (part.toolInvocation.state) {
-                                                        // example of pre-rendering streaming tool calls:
-                                                        case 'partial-call':
-                                                            return (
-                                                                <pre key={callId}>
-                                                                    {JSON.stringify(part.toolInvocation, null, 2)}
-                                                                </pre>
-                                                            );
-                                                        case 'call':
-                                                            return (
-                                                                <div key={callId}>
-                                                                    Getting weather information for{' '}
-                                                                    {typeof part.toolInvocation.args === "object" &&
-                                                                        part.toolInvocation.args !== null &&
-                                                                        "city" in part.toolInvocation.args
-                                                                        ? (part.toolInvocation.args as { city: string }).city
-                                                                        : null}...
-                                                                    {/* {part.toolInvocation.args.city}... */}
-                                                                </div>
-                                                            );
-                                                        case 'result':
-                                                            return (
-                                                                <div key={callId}>
-                                                                    Weather in {typeof part.toolInvocation.args === "object" &&
-                                                                        part.toolInvocation.args !== null &&
-                                                                        "city" in part.toolInvocation.args
-                                                                        ? (part.toolInvocation.args as { city: string }).city
-                                                                        : null}:{' '}
-                                                                    {part.toolInvocation.result}
-                                                                </div>
-                                                            );
-                                                    }
-                                                    break;
-                                                }
                                                 case 'getEvents': {
                                                     switch (part.toolInvocation.state) {
                                                         case 'partial-call':
@@ -417,19 +396,19 @@ export default function Chat({
                                                         </div>
                                                     );
                                                 }
-                                                case 'addResource': {
-                                                    switch (part.toolInvocation.state) {
-                                                        case 'partial-call':
-                                                            // const toolInvocation = part.toolInvocation as {toolName: string; state: string; args?: any; result?: any; toolCallId?: string }
-                                                            const toolInvocation = part.toolInvocation as { toolName: string; state: string; toolCallId?: string }
-                                                            return (
-                                                                <div key={callId}>
-                                                                    {/* called {part.toolInvocation?.args?.toolName} */}
-                                                                    called {toolInvocation.toolName}
-                                                                </div>
-                                                            )
-                                                    }
-                                                }
+                                                // case 'addResource': {
+                                                //     switch (part.toolInvocation.state) {
+                                                //         case 'partial-call':
+                                                //             // const toolInvocation = part.toolInvocation as {toolName: string; state: string; args?: any; result?: any; toolCallId?: string }
+                                                //             const toolInvocation = part.toolInvocation as { toolName: string; state: string; toolCallId?: string }
+                                                //             return (
+                                                //                 <div key={callId}>
+                                                //                     {/* called {part.toolInvocation?.args?.toolName} */}
+                                                //                     called {toolInvocation.toolName}
+                                                //                 </div>
+                                                //             )
+                                                //     }
+                                                // }
                                             }
                                         }
                                         default:
@@ -437,40 +416,49 @@ export default function Chat({
                                     }
                                 })}
                                 <br />
-                            </div>
+                            </div >
                         )
                     }
                     )}
 
                 {/* if last message has invoked searchEvents tool, show button for generate more suggestions */}
-                {status === 'ready' && messages && messages[messages.length - 1]?.parts.some(
-                    part => part.type === 'tool-invocation' && part.toolInvocation?.args?.date) &&
-                    <button type="submit" onClick={handleMoreSuggestionsClick}>More suggestions</button>}
+                {/* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */}
+                {
+                    status === 'ready' && messages && messages[messages.length - 1]?.parts.some(
+                        /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */
+                        part => part.type === 'tool-invocation' && part.toolInvocation?.args?.date) &&
+                    <button type="submit" onClick={handleMoreSuggestionsClick}>More suggestions</button>
+                }
 
                 {/* when is saveChat called? if stop is clicked when message is generating would user prompt be saved? */}
-                {(status === 'submitted' || status === 'streaming') && (
-                    <div>
-                        {status === 'submitted' && <Spinner />}
-                        <button type="button" onClick={() => stop()}>
-                            Stop
-                        </button>
-                    </div>
-                )}
+                {
+                    (status === 'submitted' || status === 'streaming') && (
+                        <div>
+                            {status === 'submitted' && <Spinner />}
+                            <button type="button" onClick={() => stop()}>
+                                Stop
+                            </button>
+                        </div>
+                    )
+                }
 
                 {/* TODO: for reload need to update existing db row */}
-                {error && (
-                    <>
-                        <div>An error occurred.</div>
-                        <button type="button" onClick={() => reload()}
-                            className="p-1 flex items-center gap-1 hover:text-green-700 text-sm"
-                        >
-                            Retry
-                            <RotateCcw />
-                        </button>
-                    </>
-                )}
+                {
+                    error && (
+                        <>
+                            <div>An error occurred.</div>
+                            <button type="button" onClick={() => reload()}
+                                className="p-1 flex items-center gap-1 hover:text-green-700 text-sm"
+                            >
+                                Retry
+                                <RotateCcw />
+                            </button>
+                        </>
+                    )
+                }
 
-                {(status === 'ready' && messages.length > 0) &&
+                {
+                    (status === 'ready' && messages.length > 0) &&
                     <div className="flex justify-end">
                         <button onClick={async () => { try { await handleReload() } catch (error) { } finally { } }}
                             disabled={!(status === 'ready')}
@@ -478,7 +466,8 @@ export default function Chat({
                             <RotateCcw />
                             Regenerate
                         </button>
-                    </div>}
+                    </div>
+                }
 
                 <form ref={formRef} onSubmit={handleSubmit}>
                     {/* auto expand text box to fit input text */}
@@ -488,11 +477,11 @@ export default function Chat({
                             onChange={handleInputChange}
                             className="border w-full resize-none overflow-hidden rounded-md p-2"
                             rows={1}
-                            onInput={e => {
+                            onInput={(e: React.FormEvent<HTMLTextAreaElement>) => {
                                 e.currentTarget.style.height = "auto";
                                 e.currentTarget.style.height = e.currentTarget.scrollHeight + "px";
                             }}
-                            onKeyDown={e => {
+                            onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
                                 if (e.key === "Enter" && !e.shiftKey) {
                                     e.preventDefault()
                                     // handleSubmit(e as any)
