@@ -1,3 +1,5 @@
+App deployed at https://events-chatbot.vercel.app/
+
 To run tests with cypress:
 ```
 bun run build
