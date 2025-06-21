@@ -173,24 +173,22 @@ export async function POST(req: Request) {
 
         // test
 
-        // const { partialObjectStream } = streamObject({
-        // const result1 = streamObject({
-        //     model: openai('gpt-4-turbo'),
-        //     schema: z.object({
-        //         recipe: z.object({
-        //             name: z.string(),
-        //             ingredients: z.array(z.string()),
-        //             steps: z.array(z.string()),
-        //         }),
-        //     }),
-        //     prompt: 'Generate a lasagna recipe.',
-        // });
+        const { partialObjectStream } = streamObject({
+            model: openai('gpt-4-turbo'),
+            schema: z.object({
+                recipe: z.object({
+                    name: z.string(),
+                    ingredients: z.array(z.string()),
+                    steps: z.array(z.string()),
+                }),
+            }),
+            prompt: 'Generate a lasagna recipe.',
+        });
 
-        // // for await (const partialObject of partialObjectStream) {
-        // //     console.clear();
-        // //     console.log(partialObject);
-        // // }
-        // return result1.toTextStreamResponse();
+        for await (const partialObject of partialObjectStream) {
+            console.clear();
+            console.log(partialObject);
+        }
 
         const result = streamText({
             // model: openai('gpt-4-turbo'),
