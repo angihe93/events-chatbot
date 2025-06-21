@@ -7,6 +7,8 @@ bun run cypress:open
 
 If getting Failed to find Server Action from API calls during tests, try rebuilding and starting server again (more info: https://nextjs.org/docs/messages/failed-to-find-server-action)
 
+(Note running `bun start` locally still uses the configs in .env.local)
+
 To push changes to test DB on Supabase:
 ```bun run --env-file=.env.local drizzle-kit migrate```
 or 
