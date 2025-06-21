@@ -1,7 +1,7 @@
-import { db } from '~/server/db';
-import { chat_messages, chats, events_query_daily, saved_events } from '~/server/db/schema';
+import { db } from '~/server/db'
+import { chat_messages, chats, events_query_daily, saved_events } from '~/server/db/schema'
 import { eq, and } from 'drizzle-orm'
-import { type Message } from '@ai-sdk/react';
+import { type Message } from '@ai-sdk/react'
 
 
 export async function createChatDB(id: string, userId: string): Promise<typeof chats.$inferSelect> {
@@ -10,11 +10,11 @@ export async function createChatDB(id: string, userId: string): Promise<typeof c
         userId: userId
     }
     await db.insert(chats).values(chat)
-    const [getChat] = await db.select().from(chats).where(eq(chats.id, id));
+    const [getChat] = await db.select().from(chats).where(eq(chats.id, id))
     if (!getChat) {
-        throw new Error(`Chat with id ${id} not found after insertion.`);
+        throw new Error(`Chat with id ${id} not found after insertion.`)
     }
-    return getChat;
+    return getChat
 }
 
 export async function findChatDB(userId: string): Promise<string | null> {
@@ -31,9 +31,26 @@ export async function getChatsDB(userId: string): Promise<string[]> {
 export async function loadChatDB(id: string): Promise<typeof chat_messages.$inferSelect[]> {
     const getMessages = await db.select().from(chat_messages).where(eq(chat_messages.chatId, id))
     if (!getMessages) {
-        throw new Error(`Chat with id ${id} not found after insertion.`);
+        throw new Error(`Chat with id ${id} not found after insertion.`)
     }
     return getMessages
+}
+
+export async function getChatSlugDB(id: string): Promise<string> {
+    const getSlug = await db.select({ slug: chats.slug }).from(chats).where(eq(chats.id, id))
+    return getSlug[0]?.slug ?? ""
+}
+
+export async function setChatSlugDB(id: string, slug: string): Promise<void> {
+    try {
+        await db.update(chats)
+            .set({ slug })
+            .where(eq(chats.id, id))
+        console.log(`Slug updated for chat ID ${id}: ${slug}`)
+    } catch (error) {
+        console.error(`Error updating slug for chat ID ${id}:`, error)
+        throw error
+    }
 }
 
 export async function saveChatDB(id: string, messages: Message[]) {
@@ -46,7 +63,7 @@ export async function saveChatDB(id: string, messages: Message[]) {
             chatId: id
         }
         try {
-            await db.insert(chat_messages).values(message);
+            await db.insert(chat_messages).values(message)
         } catch (error: unknown) {
             // Check for duplicate primary key error (Postgres: '23505')
             if (
@@ -55,9 +72,9 @@ export async function saveChatDB(id: string, messages: Message[]) {
                 "code" in error &&
                 (error as { code?: unknown }).code === "23505"
             ) {
-                continue;
+                continue
             }
-            throw error;
+            throw error
         }
     }
 }
@@ -80,13 +97,13 @@ export async function getSetApiQueryPage(userId: string, query: string, date: st
         await db.insert(events_query_daily).values(queryItem)
         return 0
     } else {
-        const now = new Date();
-        const createdAt = new Date(getQuery[0]!.queryCreatedAt);
-        const diffMs = now.getTime() - createdAt.getTime();
-        const diffHours = diffMs / (1000 * 60 * 60);
+        const now = new Date()
+        const createdAt = new Date(getQuery[0]!.queryCreatedAt)
+        const diffMs = now.getTime() - createdAt.getTime()
+        const diffHours = diffMs / (1000 * 60 * 60)
         if (diffHours < 24) {
             // increment page
-            const newPage = (getQuery[0]!.lastQueryPage) + 1;
+            const newPage = (getQuery[0]!.lastQueryPage) + 1
             await db.update(events_query_daily)
                 .set({ lastQueryPage: newPage })
                 .where(eq(events_query_daily.id, getQuery[0]!.id))
@@ -95,7 +112,7 @@ export async function getSetApiQueryPage(userId: string, query: string, date: st
             // set createdAt to now, and page to 0
             await db.update(events_query_daily)
                 .set({ lastQueryPage: 0, queryCreatedAt: now })
-                .where(eq(events_query_daily.id, getQuery[0]!.id));
+                .where(eq(events_query_daily.id, getQuery[0]!.id))
             return 0
         }
     }
@@ -113,7 +130,7 @@ export async function saveUnsaveEvent(
         dateTime !== undefined ? eq(saved_events.dateTime, dateTime) : undefined,
         location !== undefined ? eq(saved_events.location, location) : undefined,
         link !== undefined ? eq(saved_events.link, link) : undefined,
-    ].filter(Boolean); // Remove undefined from comparison
+    ].filter(Boolean) // Remove undefined from comparison
 
     const getEvent = await db.select()
         .from(saved_events)

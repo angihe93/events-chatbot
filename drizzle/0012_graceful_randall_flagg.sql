@@ -1,0 +1,1 @@
+ALTER TABLE "my-chatbot_chat" ADD COLUMN "slug" text;

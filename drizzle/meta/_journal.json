@@ -85,6 +85,13 @@
       "when": 1750345907694,
       "tag": "0011_safe_iron_lad",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1750540459215,
+      "tag": "0012_graceful_randall_flagg",
+      "breakpoints": true
     }
   ]
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { createIdGenerator } from 'ai';
+import { createIdGenerator, generateText, streamText } from 'ai';
 import { type Message, useChat } from '@ai-sdk/react';
 import { deleteLastMessage } from '~/lib/data';
 import { useEffect, useRef, useState } from 'react';
@@ -8,6 +8,9 @@ import { ArrowUp, Bookmark, RotateCcw } from 'lucide-react';
 import ReactMarkdown from "react-markdown"
 import React from 'react';
 // import isEqual from 'lodash.isequal'
+// import { getChatSlugDB } from '~/server/db/db'
+import { openai } from '@ai-sdk/openai';
+// import { getChatSlugDB } from '~/server/db/db';
 
 // Simple Spinner component, can replace later
 function Spinner() {
@@ -17,7 +20,8 @@ function Spinner() {
 export default function Chat({
     id,
     initialMessages,
-}: { id?: string | undefined; initialMessages?: Message[] } = {}) {
+    slug
+}: { id?: string | undefined; initialMessages?: Message[]; slug?: string } = {}) {
 
     // const [lastMsgId, setLastMsgId] = useState<string | undefined>('') // for delete previous msg in DB if user regenerates
     // useEffect(() => console.log(lastMsgId), [lastMsgId])
@@ -203,6 +207,48 @@ export default function Chat({
         void fetchSavedEvents();
     }, [saveEventClickFlag]);
 
+
+    // Slug generation at first meaningful user message
+    const [slugGenerated, setSlugGenerated] = useState(!!slug && slug !== "")
+
+    // generate slug when messages update
+    useEffect(() => {
+        console.log("slugGenerated", slugGenerated)
+        type slugParam = { chatId: string; message: string }
+        const generateSlug = async (param: slugParam) => {
+            const response = await fetch('/api/slug', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(param),
+            })
+            console.log("api slug response", response)
+            if (response.ok) {
+                const data = await response.json()
+                const slug = data.slug?.trim()
+                console.log("slug response text:", slug)
+                if (slug !== "" && slug != "\"\"")
+                    setSlugGenerated(true)
+                else
+                    console.log("slug not generated")
+                return slug;
+            } else {
+                console.error('Failed to generate slug:', await response.text())
+            }
+        }
+        if (!slugGenerated) {  // try generate slug from the most recent user message
+            const run = async () => {
+                const lastUserMessage = [...messages]
+                    .sort((a, b) => b.createdAt!.getTime() - a.createdAt!.getTime())
+                    .find((message) => message.role === 'user')
+                const param: slugParam = { chatId: id ?? "", message: lastUserMessage?.content ?? "" }
+                console.log("slug param", param)
+                const slugResult = await generateSlug(param)
+                console.log("slugResult", slugResult)
+            }
+            void run()
+        }
+
+    }, [messages])
 
     return (
         <>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useChat } from '@ai-sdk/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Logout } from '~/components/logout';
 import Chat from '~/components/ui/chat';
 import { api } from "~/trpc/react"
@@ -43,6 +43,15 @@ export default function Page() {
     // test hello procedure in src/server/api/routers/post.ts
     const trpcHelloResult = api.post.hello.useQuery({ text: 'world' })
     const chatIds = api.chat.list.useQuery()
+
+    // create a map of chatId to slug
+    type ChatSlugMap = {
+        id: string;
+        slug: string;
+    }
+    const chatSlugMap: ChatSlugMap[] = api.chat.listWithSlug.useQuery().data ?? []
+
+    console.log("chatSlugMap", chatSlugMap);
 
     // referencing post.tsx
     const [selectedChat, setSelectedChat] = useState('')
@@ -92,9 +101,14 @@ export default function Page() {
                     <div>
                         <p>or continue a previous chat:</p>
                         <div className="max-h-48 overflow-y-auto w-full flex flex-col gap-2 border">
-                            {chatIds.data?.map((i) => (
+                            {/* {chatIds.data?.map((i) => (
                                 <button key={i} onClick={() => setSelectedChat(i)}>
                                     {i}
+                                </button>
+                            ))} */}
+                            {chatSlugMap?.map((i) => (
+                                <button key={i.id} onClick={() => setSelectedChat(i.id)}>
+                                    {i.id + "slug:" + i.slug}
                                 </button>
                             ))}
                         </div>
@@ -105,7 +119,7 @@ export default function Page() {
                     isChatLoading ? (
                         <div>Loading chat...</div>
                     ) : chatData?.messages ? (
-                        <Chat id={selectedChat} initialMessages={chatData.messages} />
+                        <Chat id={selectedChat} initialMessages={chatData.messages} slug={chatSlugMap.find((i) => i.id === selectedChat)?.slug} />
                     ) : (
                         <div>No messages found.</div>
                     )
