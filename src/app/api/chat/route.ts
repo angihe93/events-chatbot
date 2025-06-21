@@ -49,11 +49,12 @@ const tools = {
             // if so, increment start page in api call
             // TODO: may want to split get & set and increment query only page after successful getEvents call
             // TODO: handle running out of pages in results
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
             const queryPage = await getSetApiQueryPage(userId!, parameters.query, parameters.date !== undefined ? DateType[parameters.date] : "")
 
             // console.log("searchEvents params", parameters)
             const responseList = []
-            let sendParams = {
+            const sendParams = {
                 ...parameters,
                 start: queryPage * 10,
                 ...(parameters.date !== undefined && { date: DateType[parameters.date] })
@@ -62,7 +63,7 @@ const tools = {
             // console.log("searchEvents paramsToSend", sendParams)
             console.log("parameters", parameters)
             console.log("sendParams", sendParams)
-            let result = await getEvents(sendParams)
+            const result = await getEvents(sendParams)
 
             const returnResult = { ...result, data: result.data.map(event => ({ name: event.name, description: event.description, date_human_readable: event.date_human_readable, link: event.link, full_address: event.venue.full_address })) }
             for (const item of returnResult.data)

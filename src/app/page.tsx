@@ -15,7 +15,7 @@ import { Bookmark } from 'lucide-react';
 // }
 
 export default function Page() {
-    const { messages, setMessages, input, handleInputChange, handleSubmit, status, stop, error, reload } = useChat({
+    const { error } = useChat({
         onFinish: (message, { usage, finishReason }) => {
             console.log('Finished streaming message:', message);
             console.log('Token usage:', usage);
@@ -30,10 +30,10 @@ export default function Page() {
     });
     console.log(error)
 
-    const handleDelete = (id: string) => {
-        // can think of messages and setMessages as a pair of state and setState in React
-        setMessages(messages.filter(message => message.id !== id))
-    }
+    // const handleDelete = (id: string) => {
+    //     // can think of messages and setMessages as a pair of state and setState in React
+    //     setMessages(messages.filter(message => message.id !== id))
+    // }
 
     // custom input,  use more granular APIs like setInput and append with your custom input and submit button components: https://ai-sdk.dev/docs/ai-sdk-ui/chatbot#controlled-input
     // https://ai-sdk.dev/docs/ai-sdk-ui/chatbot#custom-headers-body-and-credentials

@@ -20,7 +20,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "~/components/ui/sidebar"
-import { api } from "~/trpc/react"
+// import { api } from "~/trpc/react"
 
 // This is sample data.
 const data = {
@@ -43,7 +43,7 @@ const data = {
     },
   ],
 }
-const chatIds = api.chat.list.useQuery()
+// const chatIds = api.chat.list.useQuery()
 
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {

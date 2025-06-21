@@ -61,7 +61,7 @@ export default function Chat({
                 // await deleteMessage(lastMsgId)
                 await deleteLastMessage(id!)
                 await reload()
-            } catch (error) { } finally { }
+            } catch (_) { } finally { }
         }
     }
 
@@ -69,41 +69,64 @@ export default function Chat({
         console.log("clicked more suggestions");
         const lastUserMsg = [...messages].reverse().find(m => m.role === 'user')
         console.log("lastUserMsg", lastUserMsg)
-        if (lastUserMsg && lastUserMsg.parts && lastUserMsg.parts[0] && 'text' in lastUserMsg.parts[0]) {
-            console.log("'text' in lastUserMsg.parts[0]", 'text' in lastUserMsg.parts[0])
-            append({ role: 'user', content: lastUserMsg.parts[0].text })
+        const firstPart = lastUserMsg?.parts?.[0];
+        if (firstPart && firstPart.type === 'text') {
+            console.log("'text' in lastUserMsg.parts[0]", 'text' in firstPart)
+            await append({ role: 'user', content: firstPart.text })
         }
     }
 
     const [saveEventClickFlag, setSaveEventClickFlag] = useState(false)
 
-    const handleSaveEvent = async (childrenArray: any[]) => {
+    type ChildItem = {
+        key?: string;
+        props?: {
+            children?: React.ReactNode | { props?: { children?: string } };
+        };
+    }
 
-        let eventInfo: string[] = []
+    // type InnerChildItem = {
+    //     React.ReactNode | {
+    //     props?: {
+    //         children?: string;
+    //     };
+    // }
+    // }
+
+    const handleSaveEvent = async (childrenArray: ChildItem[]) => {
+        const eventInfo: string[] = []
         for (const item of childrenArray) {
             if (item.props) {
                 // // check if its event name or the rest of the <ul>
                 if (item.key === ".$p-0") { // event name
                     const eventName =
                         React.isValidElement(item.props.children) &&
-                        item.props.children.props?.children;
-                    if (eventName) {
+                        typeof item.props.children === 'object' &&
+                        'props' in item.props.children &&
+                        (item.props.children as { props?: { children?: unknown } }).props?.children;
+                    if (typeof eventName === 'string') {
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                         eventInfo.push(eventName);
                     }
                 }
                 else if (item.key === ".$ul-0") { // rest of <ul>
                     const innerChildrenArr = item.props.children
-                    for (const i of innerChildrenArr) {
-                        if (i.props) {
-                            if (React.isValidElement(i.props.children) && i.props.children.props) { // link field
-                                const link = i.props.children.props.href
-                                eventInfo.push(link)
-                                // } else { // other fields
-                            } else if (Array.isArray(i.props.children) && i.props.children.length > 1) { // other fields
-                                const infoItem = i.props.children[1]
-                                eventInfo.push(infoItem)
+                    if (Array.isArray(innerChildrenArr)) {
+                        for (const i of innerChildrenArr) {
+                            if (i && typeof i === 'object' && 'props' in i) {
+                                //  if (React.isValidElement(i) && i.props) {
+                                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
+                                if (React.isValidElement(i.props.children) && i.props.children.props) { // link field
+                                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                                    const link: string = i.props.children.props.href as string
+                                    eventInfo.push(link)
+                                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                                } else if (Array.isArray(i.props.children) && i.props.children.length > 1) { // other fields
+                                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                                    const infoItem: string = i.props.children[1] as string
+                                    eventInfo.push(infoItem)
+                                }
                             }
-
                         }
                     }
                 }
@@ -145,21 +168,34 @@ export default function Chat({
         | { name: string | undefined; dateTime: string | undefined; location: string | undefined; link: string | undefined; description?: undefined }
         | { name: string | undefined; description: string | undefined; dateTime: string | undefined; location: string | undefined; link: string | undefined };
 
-    const [savedEvents, setSavedEvents] = useState<SavedEvent[]>([]);
+    type apiEvent = {
+        id: string;
+        name: string;
+        description: string | null;
+        dateTime: string | null;
+        location: string | null;
+        link: string | null;
+        userId: string;
+        createdAt: Date;
+    }
+    type apiResponse = {
+        success: boolean;
+        data: apiEvent[]
+    }
+
+    const [savedEvents, setSavedEvents] = useState<apiEvent[]>([]);
     useEffect(() => {
         const fetchSavedEvents = async () => {
             const response = await fetch('/api/save-event/get-saved-events', {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' },
             });
-            const result = await response.json();
+            // const result: apiResponse = await response.json();
+            const result = (await response.json()) as apiResponse
             console.log("api response", result)
-            const events = result.data.map(
-                ({ userId, id, ...rest }: any) => rest
-            )
-            setSavedEvents(events)
+            setSavedEvents(result.data)
         };
-        fetchSavedEvents();
+        void fetchSavedEvents();
     }, [saveEventClickFlag]);
 
 
@@ -225,34 +261,61 @@ export default function Chat({
                                                             const placeButton = React.isValidElement(childrenArray[1]) && childrenArray[1].key === '.$p-0'
 
                                                             // redo checkIfSaved
-                                                            const checkIfSaved = (childrenArray: any) => {
-                                                                let eventInfo: string[] = []
+                                                            const checkIfSaved = (childrenArray: ChildItem[]) => {
+                                                                const eventInfo: string[] = []
                                                                 for (const item of childrenArray) {
                                                                     if (item.props) {
                                                                         // check if its event name or the rest of the <ul>
                                                                         if (item.key === ".$p-0") { // event name
                                                                             // Ensure item.props.children is valid before accessing props
+                                                                            // const eventName =
+                                                                            //     React.isValidElement(item.props.children) &&
+                                                                            //     item.props.children.props?.children;
                                                                             const eventName =
                                                                                 React.isValidElement(item.props.children) &&
-                                                                                item.props.children.props?.children;
-                                                                            if (eventName) {
+                                                                                typeof item.props.children === 'object' &&
+                                                                                'props' in item.props.children &&
+                                                                                (item.props.children as { props?: { children?: unknown } }).props?.children
+                                                                            // if (eventName) {
+                                                                            //     eventInfo.push(eventName);
+                                                                            // }
+                                                                            if (typeof eventName === 'string') {
+                                                                                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                                                                                 eventInfo.push(eventName);
                                                                             }
                                                                         }
                                                                         else if (item.key === ".$ul-0") { // rest of <ul>
                                                                             const innerChildrenArr = item.props.children
-                                                                            for (const i of innerChildrenArr) {
-                                                                                if (i.props) {
-                                                                                    // if (i.props.children.props) { // link field
-                                                                                    if (React.isValidElement(i.props.children) && i.props.children.props) { // link field
-                                                                                        const link = i.props.children.props.href
-                                                                                        eventInfo.push(link)
-                                                                                        // } else { // other fields
-                                                                                    } else if (Array.isArray(i.props.children) && i.props.children.length > 1) { // other fields
-                                                                                        const infoItem = i.props.children[1]
-                                                                                        eventInfo.push(infoItem)
-                                                                                    }
+                                                                            // for (const i of innerChildrenArr) {
+                                                                            //     if (i.props) {
+                                                                            //         // if (i.props.children.props) { // link field
+                                                                            //         if (React.isValidElement(i.props.children) && i.props.children.props) { // link field
+                                                                            //             const link = i.props.children.props.href
+                                                                            //             eventInfo.push(link)
+                                                                            //             // } else { // other fields
+                                                                            //         } else if (Array.isArray(i.props.children) && i.props.children.length > 1) { // other fields
+                                                                            //             const infoItem = i.props.children[1]
+                                                                            //             eventInfo.push(infoItem)
+                                                                            //         }
 
+                                                                            //     }
+                                                                            // }
+                                                                            if (Array.isArray(innerChildrenArr)) {
+                                                                                for (const i of innerChildrenArr) {
+                                                                                    if (i && typeof i === 'object' && 'props' in i) {
+                                                                                        //  if (React.isValidElement(i) && i.props) {
+                                                                                        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
+                                                                                        if (React.isValidElement(i.props.children) && i.props.children.props) { // link field
+                                                                                            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                                                                                            const link: string = i.props.children.props.href as string
+                                                                                            eventInfo.push(link)
+                                                                                            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                                                                                        } else if (Array.isArray(i.props.children) && i.props.children.length > 1) { // other fields
+                                                                                            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                                                                                            const infoItem: string = i.props.children[1] as string
+                                                                                            eventInfo.push(infoItem)
+                                                                                        }
+                                                                                    }
                                                                                 }
                                                                             }
                                                                         }
@@ -262,7 +325,7 @@ export default function Chat({
                                                                 return savedEvents.some(ev => ev.name === eventInfo[0])
                                                             }
 
-                                                            const isSaved = checkIfSaved(childrenArray)
+                                                            const isSaved = checkIfSaved(childrenArray as ChildItem[])
                                                             // const style = isSaved ? 'bg-red-100' : 'bg-gray-300'
                                                             const style = ""
 
@@ -272,7 +335,7 @@ export default function Chat({
                                                             return (
                                                                 <li className={placeButton ? "mb-3" : ""}>
                                                                     {Array.isArray(children) && children.length > 0 ? children[0] : children}
-                                                                    {placeButton && <button className={'border rounded-lg p-1 mx-1 ' + style} onClick={() => handleSaveEvent(childrenArray)}>{isSaved ? <Bookmark className="size-4" fill="#ff6251" /> : <Bookmark className="size-4" />}</button>}
+                                                                    {placeButton && <button className={'border rounded-lg p-1 mx-1 ' + style} onClick={() => handleSaveEvent(childrenArray as ChildItem[])}>{isSaved ? <Bookmark className="size-4" fill="#ff6251" /> : <Bookmark className="size-4" />}</button>}
                                                                     {Array.isArray(children) ? children.slice(1) : null}
                                                                 </li>
                                                                 // <li>{children}{placeButton && <div className="flex justify-center"><button className={'mb-3 border rounded-lg p-1 ' + style} onClick={() => handleSaveEvent(childrenArray)}>{isSaved ? 'saved' : 'save'}</button></div>}</li>
@@ -443,7 +506,9 @@ export default function Chat({
                     )}
 
                 {/* if last message has invoked searchEvents tool, show button for generate more suggestions */}
+                {/* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */}
                 {status === 'ready' && messages && messages[messages.length - 1]?.parts.some(
+                    /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */
                     part => part.type === 'tool-invocation' && part.toolInvocation?.args?.date) &&
                     <button type="submit" onClick={handleMoreSuggestionsClick}>More suggestions</button>}
 
@@ -488,11 +553,11 @@ export default function Chat({
                             onChange={handleInputChange}
                             className="border w-full resize-none overflow-hidden rounded-md p-2"
                             rows={1}
-                            onInput={e => {
+                            onInput={(e: React.FormEvent<HTMLTextAreaElement>) => {
                                 e.currentTarget.style.height = "auto";
                                 e.currentTarget.style.height = e.currentTarget.scrollHeight + "px";
                             }}
-                            onKeyDown={e => {
+                            onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
                                 if (e.key === "Enter" && !e.shiftKey) {
                                     e.preventDefault()
                                     // handleSubmit(e as any)
