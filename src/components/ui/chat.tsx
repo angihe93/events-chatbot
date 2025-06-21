@@ -125,6 +125,11 @@ export default function Chat({
                                     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                                     const infoItem: string = i.props.children[1] as string
                                     eventInfo.push(infoItem)
+                                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                                } else if (i.props.children && typeof i.props.children === 'string') { // other fields
+                                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                                    const infoItem: string = i.props.children as string
+                                    eventInfo.push(infoItem)
                                 }
                             }
                         }
@@ -314,6 +319,11 @@ export default function Chat({
                                                                                             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                                                                                             const infoItem: string = i.props.children[1] as string
                                                                                             eventInfo.push(infoItem)
+                                                                                            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                                                                                        } else if (i.props.children && typeof i.props.children === 'string') { // other fields
+                                                                                            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                                                                                            const infoItem: string = i.props.children as string
+                                                                                            eventInfo.push(infoItem)
                                                                                         }
                                                                                     }
                                                                                 }
@@ -333,9 +343,9 @@ export default function Chat({
                                                             // sections for each numbered item, fully contain
 
                                                             return (
-                                                                <li className={placeButton ? "mb-3" : ""}>
+                                                                <li className={placeButton ? "mb-3" : ""} >
                                                                     {Array.isArray(children) && children.length > 0 ? children[0] : children}
-                                                                    {placeButton && <button className={'border rounded-lg p-1 mx-1 ' + style} onClick={() => handleSaveEvent(childrenArray as ChildItem[])}>{isSaved ? <Bookmark className="size-4" fill="#ff6251" /> : <Bookmark className="size-4" />}</button>}
+                                                                    {placeButton && <button className={'border rounded-lg p-1 mx-1 ' + style} onClick={() => handleSaveEvent(childrenArray as ChildItem[])}>{isSaved ? <Bookmark className="size-4" fill="#b51a00" /> : <Bookmark className="size-4" />}</button>}
                                                                     {Array.isArray(children) ? children.slice(1) : null}
                                                                 </li>
                                                                 // <li>{children}{placeButton && <div className="flex justify-center"><button className={'mb-3 border rounded-lg p-1 ' + style} onClick={() => handleSaveEvent(childrenArray)}>{isSaved ? 'saved' : 'save'}</button></div>}</li>
@@ -406,42 +416,49 @@ export default function Chat({
                                     }
                                 })}
                                 <br />
-                            </div>
+                            </div >
                         )
                     }
                     )}
 
                 {/* if last message has invoked searchEvents tool, show button for generate more suggestions */}
                 {/* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */}
-                {status === 'ready' && messages && messages[messages.length - 1]?.parts.some(
-                    /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */
-                    part => part.type === 'tool-invocation' && part.toolInvocation?.args?.date) &&
-                    <button type="submit" onClick={handleMoreSuggestionsClick}>More suggestions</button>}
+                {
+                    status === 'ready' && messages && messages[messages.length - 1]?.parts.some(
+                        /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */
+                        part => part.type === 'tool-invocation' && part.toolInvocation?.args?.date) &&
+                    <button type="submit" onClick={handleMoreSuggestionsClick}>More suggestions</button>
+                }
 
                 {/* when is saveChat called? if stop is clicked when message is generating would user prompt be saved? */}
-                {(status === 'submitted' || status === 'streaming') && (
-                    <div>
-                        {status === 'submitted' && <Spinner />}
-                        <button type="button" onClick={() => stop()}>
-                            Stop
-                        </button>
-                    </div>
-                )}
+                {
+                    (status === 'submitted' || status === 'streaming') && (
+                        <div>
+                            {status === 'submitted' && <Spinner />}
+                            <button type="button" onClick={() => stop()}>
+                                Stop
+                            </button>
+                        </div>
+                    )
+                }
 
                 {/* TODO: for reload need to update existing db row */}
-                {error && (
-                    <>
-                        <div>An error occurred.</div>
-                        <button type="button" onClick={() => reload()}
-                            className="p-1 flex items-center gap-1 hover:text-green-700 text-sm"
-                        >
-                            Retry
-                            <RotateCcw />
-                        </button>
-                    </>
-                )}
+                {
+                    error && (
+                        <>
+                            <div>An error occurred.</div>
+                            <button type="button" onClick={() => reload()}
+                                className="p-1 flex items-center gap-1 hover:text-green-700 text-sm"
+                            >
+                                Retry
+                                <RotateCcw />
+                            </button>
+                        </>
+                    )
+                }
 
-                {(status === 'ready' && messages.length > 0) &&
+                {
+                    (status === 'ready' && messages.length > 0) &&
                     <div className="flex justify-end">
                         <button onClick={async () => { try { await handleReload() } catch (error) { } finally { } }}
                             disabled={!(status === 'ready')}
@@ -449,7 +466,8 @@ export default function Chat({
                             <RotateCcw />
                             Regenerate
                         </button>
-                    </div>}
+                    </div>
+                }
 
                 <form ref={formRef} onSubmit={handleSubmit}>
                     {/* auto expand text box to fit input text */}
