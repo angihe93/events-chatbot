@@ -40,12 +40,11 @@ const tools = {
             // if so, increment start page in api call
             // TODO: may want to split get & set and increment query only page after successful getEvents call
             // TODO: handle running out of pages in results
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
             const queryPage = await getSetApiQueryPage(userId!, parameters.query, parameters.date !== undefined ? DateType[parameters.date] : "")
 
             // console.log("searchEvents params", parameters)
             const responseList = []
-            const sendParams = {
+            let sendParams = {
                 ...parameters,
                 start: queryPage * 10,
                 ...(parameters.date !== undefined && { date: DateType[parameters.date] })
@@ -54,7 +53,7 @@ const tools = {
             // console.log("searchEvents paramsToSend", sendParams)
             console.log("parameters", parameters)
             console.log("sendParams", sendParams)
-            const result = await getEvents(sendParams)
+            let result = await getEvents(sendParams)
 
             const returnResult = { ...result, data: result.data.map(event => ({ name: event.name, description: event.description, date_human_readable: event.date_human_readable, link: event.link, full_address: event.venue.full_address })) }
             for (const item of returnResult.data)
@@ -174,24 +173,22 @@ export async function POST(req: Request) {
 
         // test
 
-        // const { partialObjectStream } = streamObject({
-        // const result1 = streamObject({
-        //     model: openai('gpt-4-turbo'),
-        //     schema: z.object({
-        //         recipe: z.object({
-        //             name: z.string(),
-        //             ingredients: z.array(z.string()),
-        //             steps: z.array(z.string()),
-        //         }),
-        //     }),
-        //     prompt: 'Generate a lasagna recipe.',
-        // });
+        const { partialObjectStream } = streamObject({
+            model: openai('gpt-4-turbo'),
+            schema: z.object({
+                recipe: z.object({
+                    name: z.string(),
+                    ingredients: z.array(z.string()),
+                    steps: z.array(z.string()),
+                }),
+            }),
+            prompt: 'Generate a lasagna recipe.',
+        });
 
-        // // for await (const partialObject of partialObjectStream) {
-        // //     console.clear();
-        // //     console.log(partialObject);
-        // // }
-        // return result1.toTextStreamResponse();
+        for await (const partialObject of partialObjectStream) {
+            console.clear();
+            console.log(partialObject);
+        }
 
         const result = streamText({
             // model: openai('gpt-4-turbo'),
