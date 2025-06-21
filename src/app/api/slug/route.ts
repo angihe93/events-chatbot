@@ -6,7 +6,7 @@ import { setChatSlugDB } from "~/server/db/db";
 export async function POST(req: Request) {
     try {
         const { chatId, message } = await req.json()
-        console.log("slug input message", message)
+        // console.log("slug input message", message)
         const result = await generateText({
             model: openai('gpt-4o-mini'),
             prompt:
@@ -15,9 +15,9 @@ export async function POST(req: Request) {
                 Message: ${message}
                 `
         })
-        const slug = result.text
-        console.log("generated slug", slug)
-        if (slug !== "") { // update slug field in db
+        const slug = result.text?.trim()
+        // console.log(`slug !=="" `, slug !== "")
+        if (slug && slug !== "" && slug.length > 2) { // update slug field in db
             await setChatSlugDB(chatId, slug)
         }
         return NextResponse.json({ slug });

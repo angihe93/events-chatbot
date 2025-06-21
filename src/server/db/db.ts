@@ -41,12 +41,25 @@ export async function getChatSlugDB(id: string): Promise<string> {
     return getSlug[0]?.slug ?? ""
 }
 
+export async function getChatTimeDB(id: string): Promise<Date> {
+    const getTime = await db.select({ createdAt: chats.createdAt }).from(chats).where(eq(chats.id, id))
+    if (!getTime[0]?.createdAt) {
+        throw new Error(`CreatedAt for chat with id ${id} not found.`)
+    }
+    return getTime[0].createdAt
+}
+
 export async function setChatSlugDB(id: string, slug: string): Promise<void> {
     try {
-        await db.update(chats)
-            .set({ slug })
-            .where(eq(chats.id, id))
-        console.log(`Slug updated for chat ID ${id}: ${slug}`)
+        const cleanedSlug = slug.trim().replace(/['"]+/g, "") // remove single and double quotes
+        if (cleanedSlug !== "" && cleanedSlug.length > 2) {
+            await db.update(chats)
+                .set({ slug: cleanedSlug })
+                .where(eq(chats.id, id))
+            console.log(`Slug updated for chat ID ${id}: ${cleanedSlug}`)
+        }
+        else
+            console.log("slug empty, skip db update")
     } catch (error) {
         console.error(`Error updating slug for chat ID ${id}:`, error)
         throw error

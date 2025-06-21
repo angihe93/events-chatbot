@@ -50,8 +50,15 @@ export default function Page() {
         slug: string;
     }
     const chatSlugMap: ChatSlugMap[] = api.chat.listWithSlug.useQuery().data ?? []
-
     console.log("chatSlugMap", chatSlugMap);
+
+    // for sorting chats based on created time
+    type ChatTimeMap = {
+        id: string;
+        createdAt: Date
+    }
+    const chatTimeMap: ChatTimeMap[] = api.chat.listWithTime.useQuery().data ?? []
+    console.log("chatTimeMap", chatTimeMap)
 
     // referencing post.tsx
     const [selectedChat, setSelectedChat] = useState('')
@@ -106,9 +113,11 @@ export default function Page() {
                                     {i}
                                 </button>
                             ))} */}
-                            {chatSlugMap?.map((i) => (
+                            {/* onst lastUserMessage = [...messages]
+                    .sort((a, b) => b.createdAt!.getTime() - a.createdAt!.getTime()) */}
+                            {chatTimeMap?.sort((a, b) => b.createdAt!.getTime() - a.createdAt!.getTime()).map((i) => (
                                 <button key={i.id} onClick={() => setSelectedChat(i.id)}>
-                                    {i.id + "slug:" + i.slug}
+                                    {i.id + "slug:" + chatSlugMap.find((c) => c.id === i.id)?.slug}
                                 </button>
                             ))}
                         </div>
