@@ -11,7 +11,7 @@ import {
 } from "~/components/ui/card"
 import { Input } from "~/components/ui/input"
 import { Label } from "~/components/ui/label"
-import { signIn, signUp } from "~/server/auth/users"
+import { signIn } from "~/server/auth/users"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -19,10 +19,10 @@ import { useForm } from "react-hook-form"
 import {
   Form,
   FormControl,
-  FormDescription,
+  // FormDescription,
   FormField,
   FormItem,
-  FormLabel,
+  // FormLabel,
   FormMessage,
 } from "~/components/ui/form"
 // import { Input } from "@/components/ui/input"
@@ -67,7 +67,7 @@ export function LoginForm({
     const { success, message } = await signIn(values.email, values.password)
     if (success) {
       toast.success(message)
-      router.push("/")
+      router.push("/chat")
     } else {
       toast.error(message)
     }
@@ -77,14 +77,14 @@ export function LoginForm({
   const signInWithGoogle = async () => {
     await authClient.signIn.social({
       provider: "google",
-      callbackURL: "/"
+      callbackURL: "/chat"
     })
   }
 
   const signInWithGithub = async () => {
     await authClient.signIn.social({
       provider: "github",
-      callbackURL: "/"
+      callbackURL: "/chat"
     })
   }
 

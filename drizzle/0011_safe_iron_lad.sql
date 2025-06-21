@@ -1,0 +1,1 @@
+ALTER TABLE "my-chatbot_saved_events" ADD COLUMN "createdAt" timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL;

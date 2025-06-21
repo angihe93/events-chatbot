@@ -108,6 +108,42 @@ export type NewResourceParams = {
   content: string; // check
 };
 
+// Table to track user events query
+// for the same user, we track the last page requested from get events api
+// if user asks the same exact query to request additional suggestions, increment page
+// if 24hr has passed since queryCreatedAt, new results can appear in the api response, so we reset page to 0, and set queryCreatedAt to the current time
+export const events_query_daily = createTable(
+  "events_query_daily",
+  (d) => ({
+    id: d.varchar({ length: 256 }).primaryKey().$defaultFn(() => nanoid()),
+    userId: d.varchar({ length: 256 }).references(() => users.id, { onDelete: "cascade" }).notNull(),
+    query: d.text().notNull(),
+    date: d.varchar({ length: 256 }),
+    queryCreatedAt: d.timestamp({ withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+    lastQueryPage: d.integer().notNull().default(0)
+  }))
+
+// User saved events
+// eventually can separate this out into an events table and a table that links user to their saved events, to avoid storing duplicate event info
+export const saved_events = createTable(
+  "saved_events",
+  (d) => ({
+    id: d.varchar({ length: 256 }).primaryKey().$defaultFn(() => nanoid()),
+    name: d.text().notNull(),
+    description: d.text(),
+    dateTime: d.varchar({ length: 256 }),
+    location: d.text(),
+    link: d.text(),
+    userId: d.varchar({ length: 256 }).references(() => users.id, { onDelete: "cascade" }).notNull(),
+    createdAt: d
+      .timestamp({ withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+  })
+)
+
 
 // Auth table for better auth
 // https://www.better-auth.com/docs/concepts/database#user

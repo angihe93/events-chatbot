@@ -1,0 +1,1 @@
+// after components are more ready, add tests following https://nextjs.org/docs/app/guides/testing/vitest#creating-your-first-vitest-unit-test
