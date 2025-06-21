@@ -4,7 +4,7 @@ import { createIdGenerator } from 'ai';
 import { type Message, useChat } from '@ai-sdk/react';
 import { deleteLastMessage } from '~/lib/data';
 import { useEffect, useRef, useState } from 'react';
-import { ArrowUp, RotateCcw } from 'lucide-react';
+import { ArrowUp, Bookmark, RotateCcw } from 'lucide-react';
 import ReactMarkdown from "react-markdown"
 import React from 'react';
 // import isEqual from 'lodash.isequal'
@@ -75,97 +75,41 @@ export default function Chat({
         }
     }
 
-    // helper function to construct event fields from rendered list
-    // not working for some reason, doing the same thing in handleSaveEvent and and checkIfSaved separately
-    const constructSaveEvent = (childrenArray: any[]) => {
-        // console.log("")
-        console.log(childrenArray)
-        // let eventName
-        let eventInfo: string[] = [] // name, datetime, location, link
-        for (const item of childrenArray) {
-            if (item.props) {
-                console.log(item)
-                if (item.type === "p") {
-                    // get event name
-                    const eventName = item.props.children.props.children
-                    eventInfo.push(eventName)
-                } else {
-                    const innerChildrenArr = item.props.children
-                    for (const c of innerChildrenArr) {
-                        if (c.props) {
-                            if (Array.isArray(c.props.children) &&
-                                React.isValidElement(c.props.children[0]) &&
-                                c.props.children[0].type === 'strong')
-                                eventInfo.push(c.props.children[1])
-                            else {
-                                eventInfo.push(c.props.children.props.href)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        console.log(eventInfo)
-
-        let saveEvent
-        if (eventInfo.length === 4) {
-            saveEvent = {
-                name: eventInfo[0],
-                dateTime: eventInfo[1],
-                location: eventInfo[2],
-                link: eventInfo[3]
-            }
-        } else if (eventInfo.length === 5) {
-            saveEvent = {
-                name: eventInfo[0],
-                description: eventInfo[1],
-                dateTime: eventInfo[2],
-                location: eventInfo[3],
-                link: eventInfo[4]
-            }
-        }
-        console.log("constructSaveEvent saveEvent", saveEvent)
-        return saveEvent
-    }
-
     const [saveEventClickFlag, setSaveEventClickFlag] = useState(false)
-    const handleSaveEvent = async (childrenArray: any[]) => {
-        // const saveEventParams = constructSaveEvent(childrenArray)
-        // await fetch('/api/save-event', {
-        //     method: 'POST',
-        //     headers: { 'Content-Type': 'application/json' },
-        //     body: JSON.stringify(saveEventParams),
-        // })
 
-        // console.log("")
-        console.log(childrenArray)
-        // let eventName
-        let eventInfo: string[] = [] // name, datetime, location, link
+    const handleSaveEvent = async (childrenArray: any[]) => {
+
+        let eventInfo: string[] = []
         for (const item of childrenArray) {
             if (item.props) {
-                console.log(item)
-                if (item.type === "p") {
-                    // get event name
-                    const eventName = item.props.children.props.children
-                    eventInfo.push(eventName)
-                } else {
+                // // check if its event name or the rest of the <ul>
+                if (item.key === ".$p-0") { // event name
+                    const eventName =
+                        React.isValidElement(item.props.children) &&
+                        item.props.children.props?.children;
+                    if (eventName) {
+                        eventInfo.push(eventName);
+                    }
+                }
+                else if (item.key === ".$ul-0") { // rest of <ul>
                     const innerChildrenArr = item.props.children
-                    for (const c of innerChildrenArr) {
-                        if (c.props) {
-                            if (Array.isArray(c.props.children) &&
-                                React.isValidElement(c.props.children[0]) &&
-                                c.props.children[0].type === 'strong')
-                                eventInfo.push(c.props.children[1])
-                            else {
-                                eventInfo.push(c.props.children.props.href)
+                    for (const i of innerChildrenArr) {
+                        if (i.props) {
+                            if (React.isValidElement(i.props.children) && i.props.children.props) { // link field
+                                const link = i.props.children.props.href
+                                eventInfo.push(link)
+                                // } else { // other fields
+                            } else if (Array.isArray(i.props.children) && i.props.children.length > 1) { // other fields
+                                const infoItem = i.props.children[1]
+                                eventInfo.push(infoItem)
                             }
+
                         }
                     }
                 }
             }
         }
-        console.log(eventInfo)
-
+        console.log("handleSaveEvent eventInfo", eventInfo)
         if (eventInfo.length === 4) {
             const saveEventParams = {
                 name: eventInfo[0],
@@ -195,6 +139,7 @@ export default function Chat({
         setSaveEventClickFlag(!saveEventClickFlag)
     }
 
+
     // for save button styling
     type SavedEvent =
         | { name: string | undefined; dateTime: string | undefined; location: string | undefined; link: string | undefined; description?: undefined }
@@ -217,93 +162,7 @@ export default function Chat({
         fetchSavedEvents();
     }, [saveEventClickFlag]);
 
-    const checkIfSaved = (childrenArray: any[]) => {
-        // const saveEvent = constructSaveEvent(childrenArray);
-        // console.log("checkIfSaved saveEvent", saveEvent)
-        // if (!saveEvent) return false;
-        // return savedEvents.some(ev =>
-        //     JSON.stringify(ev) === JSON.stringify(saveEvent)
-        // );
 
-        // console.log(childrenArray)
-        // console.log(savedEvents)
-        let eventInfo: string[] = [] // name, datetime, location, link
-        for (const item of childrenArray) {
-            if (item.props) {
-                // console.log(item)
-                if (item.type === "p" || item.type === "h2") {
-                    // get event name
-                    const eventName = item.props.children.props?.children
-                    eventInfo.push(eventName)
-                } else if (item.type === "strong") {
-                    const eventName = item.props.children
-                    eventInfo.push(eventName)
-                }
-                // else {
-                //     const innerChildrenArr = item.props.children
-                //     console.log("innerChildrenArr", innerChildrenArr)
-                //     for (const c of innerChildrenArr) {
-                //         if (c.props) {
-                //             if (Array.isArray(c.props.children) &&
-                //                 React.isValidElement(c.props.children[0]) &&
-                //                 c.props.children[0].type === 'strong')
-                //                 eventInfo.push(c.props.children[1])
-                //             else {
-                //                 eventInfo.push(c.props.children.props.href)
-                //             }
-                //         }
-                //     }
-                // }
-            }
-        }
-        // console.log(eventInfo)
-        return savedEvents.some(ev => ev.name === eventInfo[0])
-
-        // more rigorous comparison using all fields is buggy, prone to runtime errors
-        // so skipping for now
-
-        // let saveEvent: { name: string | undefined; dateTime: string | undefined; location: string | undefined; link: string | undefined; description?: string | undefined; } = {
-        //     name: undefined,
-        //     dateTime: undefined,
-        //     location: undefined,
-        //     link: undefined,
-        //     description: undefined
-        // };
-        // if (eventInfo.length === 4) {
-        //     saveEvent = {
-        //         name: eventInfo[0],
-        //         description: undefined,
-        //         dateTime: eventInfo[1],
-        //         location: eventInfo[2],
-        //         link: eventInfo[3]
-        //     }
-        // } else if (eventInfo.length === 5) {
-        //     saveEvent = {
-        //         name: eventInfo[0],
-        //         description: eventInfo[1],
-        //         dateTime: eventInfo[2],
-        //         location: eventInfo[3],
-        //         link: eventInfo[4]
-        //     }
-        // }
-        // console.log(saveEvent)
-        // console.log(JSON.stringify(saveEvent))
-        // console.log(savedEvents.map(ev =>
-        //     JSON.stringify(ev)
-        // ))
-
-        // return savedEvents.some(ev =>
-        //     JSON.stringify(ev) === JSON.stringify(saveEvent)
-        // )
-    }
-
-    // useEffect(() => {
-    //     console.log("savedEvents", savedEvents);
-    // }, [savedEvents])
-
-    // useEffect(() => console.log(messages), [messages])
-
-    // tutorial 3
     return (
         <>
             <div className="container flex flex-col items-center justify-center gap-6 px-10 py-16 w-[60%]">
@@ -351,26 +210,72 @@ export default function Chat({
                                                         ul({ children }) {
                                                             console.log(children)
                                                             return (
-                                                                (<ul className="list-inside list-disc mb-3">
+                                                                (<ul className="list-inside list-disc">
                                                                     {children}
-                                                                    <button>save</button>
+                                                                    {/* <button>save</button> */}
                                                                     {/* <button className='border' onClick={() => { console.log(children); console.log(part) }}>save</button> */}
                                                                 </ul>)
                                                             )
                                                         },
                                                         li({ children }) {
                                                             const childrenArray = React.Children.toArray(children)
-                                                            // console.log(childrenArray)
-                                                            // Check: if only one child and it's a <p>, we can show save button
-                                                            // can get all relevant event info from here, including name, description, location, link
-                                                            // use to save user liked events
-                                                            // const childP = React.isValidElement(childrenArray[1]) && childrenArray[1].type === 'span'
-                                                            const childP = React.isValidElement(childrenArray[1]) && childrenArray[1].type === 'p'
-                                                            // console.log(childP)
+                                                            console.log("li childrenArray", childrenArray)
+
+                                                            // only place button at end of outer <li>
+                                                            const placeButton = React.isValidElement(childrenArray[1]) && childrenArray[1].key === '.$p-0'
+
+                                                            // redo checkIfSaved
+                                                            const checkIfSaved = (childrenArray: any) => {
+                                                                let eventInfo: string[] = []
+                                                                for (const item of childrenArray) {
+                                                                    if (item.props) {
+                                                                        // check if its event name or the rest of the <ul>
+                                                                        if (item.key === ".$p-0") { // event name
+                                                                            // Ensure item.props.children is valid before accessing props
+                                                                            const eventName =
+                                                                                React.isValidElement(item.props.children) &&
+                                                                                item.props.children.props?.children;
+                                                                            if (eventName) {
+                                                                                eventInfo.push(eventName);
+                                                                            }
+                                                                        }
+                                                                        else if (item.key === ".$ul-0") { // rest of <ul>
+                                                                            const innerChildrenArr = item.props.children
+                                                                            for (const i of innerChildrenArr) {
+                                                                                if (i.props) {
+                                                                                    // if (i.props.children.props) { // link field
+                                                                                    if (React.isValidElement(i.props.children) && i.props.children.props) { // link field
+                                                                                        const link = i.props.children.props.href
+                                                                                        eventInfo.push(link)
+                                                                                        // } else { // other fields
+                                                                                    } else if (Array.isArray(i.props.children) && i.props.children.length > 1) { // other fields
+                                                                                        const infoItem = i.props.children[1]
+                                                                                        eventInfo.push(infoItem)
+                                                                                    }
+
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                                console.log("checkIfSaved eventInfo", eventInfo)
+                                                                return savedEvents.some(ev => ev.name === eventInfo[0])
+                                                            }
+
                                                             const isSaved = checkIfSaved(childrenArray)
-                                                            const style = isSaved ? 'border bg-red-100' : 'border'
+                                                            // const style = isSaved ? 'bg-red-100' : 'bg-gray-300'
+                                                            const style = ""
+
+                                                            const isEventName = React.isValidElement(childrenArray[0]) && childrenArray[0].key === ".$p-0"
+                                                            // sections for each numbered item, fully contain
+
                                                             return (
-                                                                <li>{children}{childP && <button className={style} onClick={() => handleSaveEvent(childrenArray)}>{isSaved ? 'saved' : 'save'}</button>}</li>
+                                                                <li className={placeButton ? "mb-3" : ""}>
+                                                                    {Array.isArray(children) && children.length > 0 ? children[0] : children}
+                                                                    {placeButton && <button className={'border rounded-lg p-1 mx-1 ' + style} onClick={() => handleSaveEvent(childrenArray)}>{isSaved ? <Bookmark className="size-4" fill="#ff6251" /> : <Bookmark className="size-4" />}</button>}
+                                                                    {Array.isArray(children) ? children.slice(1) : null}
+                                                                </li>
+                                                                // <li>{children}{placeButton && <div className="flex justify-center"><button className={'mb-3 border rounded-lg p-1 ' + style} onClick={() => handleSaveEvent(childrenArray)}>{isSaved ? 'saved' : 'save'}</button></div>}</li>
                                                             )
                                                         },
                                                         a: ({ node, ...props }) => (
