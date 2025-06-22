@@ -80,20 +80,20 @@ export default function Page() {
     return (
         <div className="bg-muted flex flex-col">
             {/* Fixed top bar */}
-            <div></div>
-            <div className="bg-gray-200 fixed top-0 left-0 right-0 w-full flex justify-between items-center px-6 z-50 h-16">
-                {/* Saved Events button on the left */}
-                <button
+            {/* <div></div>
+            <div className="bg-gray-200 fixed top-0 left-0 right-0 w-full flex justify-between items-center px-6 z-50 h-16"> */}
+            {/* Saved Events button on the left */}
+            {/* <button
                     onClick={() => router.push('/saved-events')}
                     className="flex items-center gap-2 border px-3 py-1 rounded bg-gray-300 rounded-md border-gray-500"
                 >
                     <Bookmark className="size-4" /> Saved Events
-                </button>
-                {/* Logout button on the right */}
-                <div>
+                </button> */}
+            {/* Logout button on the right */}
+            {/* <div>
                     <Logout />
                 </div>
-            </div>
+            </div> */}
 
             {/* Main content */}
             {/* w-full max-w-xl */}
