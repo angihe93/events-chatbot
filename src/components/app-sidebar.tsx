@@ -1,3 +1,5 @@
+'use client'
+
 import * as React from "react"
 import { Bookmark, ChevronRight } from "lucide-react"
 
@@ -20,35 +22,32 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "~/components/ui/sidebar"
-import { api } from "~/trpc/server"
-// import { api } from "~/trpc/react"
-import { auth } from "~/lib/auth"
-import { headers } from "next/headers"
-import { redirect } from "next/navigation"
+// import { api } from "~/trpc/server"
+import { api } from "~/trpc/react"
+// import { auth } from "~/lib/auth"
+// import { headers } from "next/headers"
+// import { redirect } from "next/navigation"
 
+import { useSession } from "~/context/SessionContext"
 
 // export function AppSidebar({ chatItems, ...props }: { chatItems: ChatItem[] } & React.ComponentProps<typeof Sidebar>) {
-export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const sessionContext = useSession(); // Access session from context
+  const session = sessionContext?.session;
+  console.log("AppSidebar session", session)
 
-  if (!session?.user) {
-    // redirect('/login')
-    return null
-  }
-
+  // TODO: should not render sidebar when user not logged in
   // if (!session?.user) {
-  // get user chats
-  // map chatId to display slug
-  // console.log("api.chat", api.chat)
+  //   return null; // Render nothing if user is not logged in
+  // }
+
   type ChatSlugMap = {
     id: string;
     slug: string;
   }
-  const chatSlugMap: ChatSlugMap[] = await api.chat.listWithSlug() ?? []
-  // const { data: chatSlugMap = [] } = api.chat.listWithSlug.useQuery();
+  // const chatSlugMap: ChatSlugMap[] = await api.chat.listWithSlug() ?? []
+  const { data: chatSlugMap = [] } = api.chat.listWithSlug.useQuery();
   // console.log("chatSlugMap", chatSlugMap);
 
   // for sorting chats based on created time
@@ -56,8 +55,8 @@ export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sideb
     id: string;
     createdAt: Date
   }
-  const chatTimeMap: ChatTimeMap[] = await api.chat.listWithTime() ?? []
-  // const { data: chatTimeMap = [] } = api.chat.listWithTime.useQuery();
+  // const chatTimeMap: ChatTimeMap[] = await api.chat.listWithTime() ?? []
+  const { data: chatTimeMap = [] } = api.chat.listWithTime.useQuery();
   // console.log("chatTimeMap", chatTimeMap)
 
   type ChatItem = { id: string; title: string }

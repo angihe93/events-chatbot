@@ -1,3 +1,4 @@
+'use client'
 
 import "~/styles/globals.css";
 
@@ -9,8 +10,9 @@ import { api, TRPCReactProvider } from "~/trpc/react";
 import { Toaster } from "~/components/ui/sonner"
 import { SidebarProvider, SidebarTrigger } from "~/components/ui/sidebar";
 import { AppSidebar } from "~/components/app-sidebar";
-import { auth } from "~/lib/auth";
-import { headers } from "next/headers";
+// import { auth } from "~/lib/auth";
+// import { headers } from "next/headers";
+import { SessionProvider, useSession } from "~/context/SessionContext";
 
 // import { authClient } from "~/lib/auth-client"
 // import { useEffect, useState } from "react";
@@ -44,50 +46,27 @@ const geist = Geist({
   variable: "--font-geist-sans",
 });
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
 
-  // Get user authentication status
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-  // // Define the type for your session, or import it if available
-  // type SessionType = Awaited<ReturnType<typeof authClient.getSession>>;
-
-  // const [session, setSession] = useState<SessionType | null>(null);
-
-  // useEffect(() => {
-  //   const fetchSession = async () => {
-  //     const sessionData = await authClient.getSession(); // Replace with your client-side session fetch logic
-  //     setSession(sessionData);
-  //   };
-
-  //   fetchSession();
-  // }, [])
-  // if (!session?.user) {
-  //     console.log("User not authenticated, redirecting to login");
-  //     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
-  // }
+  const sessionContext = useSession(); // Access session from context
+  const session = sessionContext?.session;
 
   return (
     <html lang="en" className={`${geist.variable}`}>
       <body>
-
-        <SidebarProvider defaultOpen={false}>
-          {/* <AppSidebar chatItems={chatItems} /> */}
-          {!session?.user && <AppSidebar />}
-          {/* <TRPCReactProvider><AppSidebar /></TRPCReactProvider> */}
-          <SidebarTrigger />
-          {/* <SidebarInset>  */}
-          <div style={{ flex: 1 }}>
-            <TRPCReactProvider>{children}</TRPCReactProvider>
-          </div>
-          {/* </SidebarInset> */}
-        </SidebarProvider>
-        <Toaster />
-
+        <SessionProvider>
+          <TRPCReactProvider>
+            <SidebarProvider defaultOpen={false}>
+              <AppSidebar />
+              {/* {session?.user && <AppSidebar />} Render sidebar only if user is logged in */}
+              <SidebarTrigger />
+              <div style={{ flex: 1 }}>{children}</div>
+            </SidebarProvider>
+          </TRPCReactProvider>
+        </SessionProvider>
       </body>
-    </html >
-  );
+    </html>
+  )
 }
