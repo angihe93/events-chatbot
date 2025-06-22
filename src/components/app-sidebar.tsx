@@ -30,6 +30,9 @@ import { api } from "~/trpc/react"
 
 import { useSession } from "~/context/SessionContext"
 import { useChatContext } from "~/context/ChatContext"
+import { useState, useEffect } from "react"
+
+// import { useQueryClient } from "@tanstack/react-query"
 
 // export function AppSidebar({ chatItems, ...props }: { chatItems: ChatItem[] } & React.ComponentProps<typeof Sidebar>) {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -37,6 +40,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const sessionContext = useSession(); // Access session from context
   const session = sessionContext?.session;
   console.log("AppSidebar session", session)
+
+  // const queryClient = useQueryClient(); // Access React Query's query client
 
   // TODO: should not render sidebar when user not logged in
   // if (!session?.user) {
@@ -68,6 +73,38 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     { id: i.id, title: chatSlugMap.find((c) => c.id === i.id)?.slug ? chatSlugMap.find((c) => c.id === i.id)?.slug : `Chat created at ${chatTimeMap.find((c) => c.id === i.id)?.createdAt.toLocaleString()}` } as ChatItem
   ))
 
+  // want to refetch chats data after creating new chat so sidebar can update immediately
+  // but can't seem to do useQuery inside useEffect
+  // const [chatSlugMap, setChatSlugMap] = useState<ChatSlugMap[]>([])
+  // const [chatTimeMap, setChatTimeMap] = useState<ChatTimeMap[]>([])
+  // const [chatItems, setChatItems] = useState<ChatItem[]>([])
+  // useEffect(() => {
+  //   const fetchChats = async () => {
+  //     const { data } = api.chat.listWithSlug.useQuery()
+  //     if (data) {
+  //       setChatSlugMap(data);
+  //     }
+  //     const timeData: ChatTimeMap[] = api.chat.listWithTime.useQuery().data ?? []
+  //     setChatTimeMap(timeData)
+  //     const chatItems: ChatItem[] = chatTimeMap?.sort((a, b) => b.createdAt!.getTime() - a.createdAt!.getTime()).map((i) => (
+  //       { id: i.id, title: chatSlugMap.find((c) => c.id === i.id)?.slug ? chatSlugMap.find((c) => c.id === i.id)?.slug : `Chat created at ${chatTimeMap.find((c) => c.id === i.id)?.createdAt.toLocaleString()}` } as ChatItem
+  //     ))
+  //     setChatItems(chatItems)
+  //   }
+  //   fetchChats()
+  //   // const { data } = api.chat.listWithSlug.useQuery()
+  //   // if (data) {
+  //   //   setChatSlugMap(data);
+  //   // }
+  //   // const timeData: ChatTimeMap[] = api.chat.listWithTime.useQuery().data ?? []
+  //   // setChatTimeMap(timeData)
+  //   // const chatItems: ChatItem[] = chatTimeMap?.sort((a, b) => b.createdAt!.getTime() - a.createdAt!.getTime()).map((i) => (
+  //   //   { id: i.id, title: chatSlugMap.find((c) => c.id === i.id)?.slug ? chatSlugMap.find((c) => c.id === i.id)?.slug : `Chat created at ${chatTimeMap.find((c) => c.id === i.id)?.createdAt.toLocaleString()}` } as ChatItem
+  //   // ))
+  //   // setChatItems(chatItems)
+  // }, [selectedChatContext]);
+
+
   const data = {
     versions: ["0.0.1"],
     navMain: [
@@ -78,6 +115,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     ],
   }
 
+  const createChat = api.chat.create.useMutation({
+    onSuccess: async (data) => {
+      setSelectedChatContext(data)
+      console.log(`created chat ${data}`)
+      // queryClient.invalidateQueries({ queryKey: ['chatSlugMap'] }); // Refetch chatSlugMap query
+      // queryClient.invalidateQueries({ queryKey: ['chatTimeMap'] }); // Refetch chatTimeMap query
+    }
+  });
+
+  // TODO: when createChat is clicked, fetch chat ids, slugs again and update sidebar
+  // useEffect(() => {
+
+  // }, [selectedChatContext])
 
   return (
     <Sidebar {...props}>
@@ -105,7 +155,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenu>
               <SidebarMenuItem >
                 <SidebarMenuButton asChild>
-                  <a>
+                  <a
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      createChat.mutate();
+                    }}
+                  >
                     <PencilLine />
                     <span>New chat</span>
                   </a>
