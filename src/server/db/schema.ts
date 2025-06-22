@@ -38,6 +38,7 @@ export const chats = createTable(
       .timestamp({ withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
+    slug: d.text(),
   })
 )
 

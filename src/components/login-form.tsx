@@ -32,6 +32,8 @@ import { useState } from "react"
 import { Loader2 } from "lucide-react"
 import { createAuthClient } from "better-auth/client"
 import Link from "next/link"
+import { useSession } from "~/context/SessionContext";
+
 
 const authClient = createAuthClient()
 
@@ -45,6 +47,7 @@ export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const { refreshSession } = useSession() ?? {};
 
   const [isLoading, setIsLoading] = useState(false)
 
@@ -67,6 +70,9 @@ export function LoginForm({
     const { success, message } = await signIn(values.email, values.password)
     if (success) {
       toast.success(message)
+      if (refreshSession) {
+        await refreshSession()
+      }
       router.push("/chat")
     } else {
       toast.error(message)
