@@ -31,6 +31,8 @@ import { api } from "~/trpc/react"
 import { useSession } from "~/context/SessionContext"
 import { useChatContext } from "~/context/ChatContext"
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation";
+
 
 // import { useQueryClient } from "@tanstack/react-query"
 
@@ -40,6 +42,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const sessionContext = useSession(); // Access session from context
   const session = sessionContext?.session;
   console.log("AppSidebar session", session)
+
+  const router = useRouter()
 
   // const queryClient = useQueryClient(); // Access React Query's query client
 
@@ -160,6 +164,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     onClick={(e) => {
                       e.preventDefault();
                       createChat.mutate();
+                      router.push("/chat")
                     }}
                   >
                     <PencilLine />
@@ -199,7 +204,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                           {/* <a>{item.title}</a> */}
                           <button
                             key={item.id}
-                            onClick={() => setSelectedChatContext(item.id)} // Update selected chat
+                            onClick={() => { setSelectedChatContext(item.id); router.push("/chat") }} // Update selected chat
                           // style={{
                           //   backgroundColor: selectedChat === chat.id ? "lightblue" : "transparent",
                           // }}
