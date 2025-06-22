@@ -13,6 +13,7 @@ import { AppSidebar } from "~/components/app-sidebar";
 // import { auth } from "~/lib/auth";
 // import { headers } from "next/headers";
 import { SessionProvider, useSession } from "~/context/SessionContext";
+import { ChatProvider } from "~/context/ChatContext";
 
 // import { authClient } from "~/lib/auth-client"
 // import { useEffect, useState } from "react";
@@ -57,14 +58,16 @@ export default function RootLayout({
     <html lang="en" className={`${geist.variable}`}>
       <body>
         <SessionProvider>
-          <TRPCReactProvider>
-            <SidebarProvider defaultOpen={false}>
-              <AppSidebar />
-              {/* {session?.user && <AppSidebar />} Render sidebar only if user is logged in */}
-              <SidebarTrigger />
-              <div style={{ flex: 1 }}>{children}</div>
-            </SidebarProvider>
-          </TRPCReactProvider>
+          <ChatProvider>
+            <TRPCReactProvider>
+              <SidebarProvider defaultOpen={false}>
+                <AppSidebar />
+                {/* {session?.user && <AppSidebar />} Render sidebar only if user is logged in */}
+                <SidebarTrigger />
+                <div style={{ flex: 1 }}>{children}</div>
+              </SidebarProvider>
+            </TRPCReactProvider>
+          </ChatProvider>
         </SessionProvider>
       </body>
     </html>

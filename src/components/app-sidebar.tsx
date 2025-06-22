@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from "react"
-import { Bookmark, ChevronRight } from "lucide-react"
+import { Bookmark, ChevronRight, PencilLine } from "lucide-react"
 
 import { SearchForm } from "~/components/search-form"
 import { VersionSwitcher } from "~/components/version-switcher"
@@ -29,6 +29,7 @@ import { api } from "~/trpc/react"
 // import { redirect } from "next/navigation"
 
 import { useSession } from "~/context/SessionContext"
+import { useChatContext } from "~/context/ChatContext"
 
 // export function AppSidebar({ chatItems, ...props }: { chatItems: ChatItem[] } & React.ComponentProps<typeof Sidebar>) {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -41,6 +42,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // if (!session?.user) {
   //   return null; // Render nothing if user is not logged in
   // }
+
+  const { selectedChatContext, setSelectedChatContext } = useChatContext(); // Access ChatContext
 
   type ChatSlugMap = {
     id: string;
@@ -79,11 +82,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar {...props}>
       <SidebarHeader>
-        <VersionSwitcher
+        {/* <VersionSwitcher
           versions={data.versions}
           defaultVersion={data.versions[0] ?? ""}
-        />
-        <SearchForm />
+        /> */}
+        {/* <SearchForm /> */}
+        {/* TODO: app logo and name go here */}
       </SidebarHeader>
       <SidebarContent className="gap-0">
         <SidebarGroup>
@@ -94,6 +98,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <a href="/saved-events">
                     <Bookmark />
                     <span>Saved events</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+            <SidebarMenu>
+              <SidebarMenuItem >
+                <SidebarMenuButton asChild>
+                  <a>
+                    <PencilLine />
+                    <span>New chat</span>
                   </a>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -126,7 +140,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         {/* <SidebarMenuButton asChild isActive={item.isActive}> */}
                         <SidebarMenuButton asChild>
                           {/* <a href={item.url}>{item.title}</a> */}
-                          <a>{item.title}</a>
+                          {/* <a>{item.title}</a> */}
+                          <button
+                            key={item.id}
+                            onClick={() => setSelectedChatContext(item.id)} // Update selected chat
+                          // style={{
+                          //   backgroundColor: selectedChat === chat.id ? "lightblue" : "transparent",
+                          // }}
+                          >
+                            {item.title}
+                          </button>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                     ))}

@@ -7,6 +7,7 @@ import Chat from '~/components/ui/chat';
 import { api } from "~/trpc/react"
 import { useRouter } from 'next/navigation'
 import { Bookmark } from 'lucide-react';
+import { useChatContext } from "~/context/ChatContext";
 
 
 // Simple Spinner component, can replace later
@@ -60,14 +61,20 @@ export default function Page() {
     const chatTimeMap: ChatTimeMap[] = api.chat.listWithTime.useQuery().data ?? []
     console.log("chatTimeMap", chatTimeMap)
 
+    const { selectedChatContext, setSelectedChatContext } = useChatContext()
     // referencing post.tsx
-    const [selectedChat, setSelectedChat] = useState('')
+    const [selectedChat, setSelectedChat] = useState(selectedChatContext)
+    // const { setSelectedChat as setSelectedChatContext } = useChatContext(); // Access ChatContext
+    // const {selectedChat as SelectedChatContext}
+    useEffect(() => {
+        setSelectedChat(selectedChatContext)
+    }, [selectedChatContext])
 
     const createChat = api.chat.create.useMutation({
         onSuccess: async (data) => {
             setSelectedChat(data)
             console.log(`created chat ${data}`)
-        },
+        }
     });
 
     const { data: chatData, isLoading: isChatLoading } = api.chat.load.useQuery(
@@ -76,6 +83,10 @@ export default function Page() {
     );
 
     const router = useRouter()
+
+    useEffect(() => {
+        console.log("selectedChat", selectedChat)
+    }, [selectedChat])
 
     return (
         <div className="bg-muted flex flex-col">
@@ -98,23 +109,27 @@ export default function Page() {
             {/* Main content */}
             {/* w-full max-w-xl */}
             <main className="flex min-h-screen flex-col items-center gap-4 mt-20 pt-20 ">
-                {/* Your chat content */}
-                <h3>{trpcHelloResult.data?.greeting}</h3>
-                <button onClick={() => createChat.mutate()} disabled={createChat.isPending}>
-                    Start chatting
-                </button>
+                {/* show this when user hasn't picked a chat yet */}
+                {!selectedChat && (
+                    <>
+                        <h3>{trpcHelloResult.data?.greeting}</h3>
+                        <button onClick={() => createChat.mutate()} disabled={createChat.isPending}>
+                            Start chatting
+                        </button>
 
-                {chatIds.data && chatIds.data.length > 0 && (
-                    <div>
-                        <p>or continue a previous chat:</p>
-                        <div className="max-h-48 overflow-y-auto w-full flex flex-col gap-2 border">
-                            {chatTimeMap?.sort((a, b) => b.createdAt!.getTime() - a.createdAt!.getTime()).map((i) => (
-                                <button key={i.id} onClick={() => setSelectedChat(i.id)}>
-                                    {chatSlugMap.find((c) => c.id === i.id)?.slug ? chatSlugMap.find((c) => c.id === i.id)?.slug : `Chat created at ${chatTimeMap.find((c) => c.id === i.id)?.createdAt.toLocaleString()}`}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
+                        {chatIds.data && chatIds.data.length > 0 && (
+                            <div>
+                                <p>or continue a previous chat:</p>
+                                <div className="max-h-48 overflow-y-auto w-full flex flex-col gap-2 border">
+                                    {chatTimeMap?.sort((a, b) => b.createdAt!.getTime() - a.createdAt!.getTime()).map((i) => (
+                                        <button key={i.id} onClick={() => setSelectedChat(i.id)}>
+                                            {chatSlugMap.find((c) => c.id === i.id)?.slug ? chatSlugMap.find((c) => c.id === i.id)?.slug : `Chat created at ${chatTimeMap.find((c) => c.id === i.id)?.createdAt.toLocaleString()}`}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </>
                 )}
 
                 {selectedChat && (
