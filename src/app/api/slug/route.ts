@@ -5,8 +5,15 @@ import { setChatSlugDB } from "~/server/db/db";
 
 export async function POST(req: Request) {
     try {
-        const { chatId, message } = await req.json()
+        type RequestBody = {
+            chatId: string;
+            message: string;
+        }
+        const { chatId, message }: RequestBody = await req.json() as RequestBody
         // console.log("slug input message", message)
+        if (typeof message !== "string") {
+            throw new Error("Invalid message: must be a string.");
+        }
         const result = await generateText({
             model: openai('gpt-4o-mini'),
             prompt:

@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from "react"
-import { Bookmark, ChevronRight, PencilLine } from "lucide-react"
+import { Bookmark, ChevronRight, LogOut, PencilLine } from "lucide-react"
 
 import { SearchForm } from "~/components/search-form"
 import { VersionSwitcher } from "~/components/version-switcher"
@@ -40,6 +40,7 @@ import { useRouter } from "next/navigation";
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   const sessionContext = useSession(); // Access session from context
+  /* eslint-disable @typescript-eslint/no-unsafe-assignment */
   const session = sessionContext?.session;
   console.log("AppSidebar session", session)
 
@@ -73,7 +74,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   type ChatItem = { id: string; title: string }
 
-  const chatItems: ChatItem[] = chatTimeMap?.sort((a, b) => b.createdAt!.getTime() - a.createdAt!.getTime()).map((i) => (
+  const chatItems: ChatItem[] = chatTimeMap?.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).map((i) => (
     { id: i.id, title: chatSlugMap.find((c) => c.id === i.id)?.slug ? chatSlugMap.find((c) => c.id === i.id)?.slug : `Chat created at ${chatTimeMap.find((c) => c.id === i.id)?.createdAt.toLocaleString()}` } as ChatItem
   ))
 
@@ -180,7 +181,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <Collapsible
             key={item.title}
             title={item.title}
-            defaultOpen
+            defaultOpen={false}
             className="group/collapsible"
           >
             <SidebarGroup>
@@ -226,7 +227,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <SidebarMenuItem >
                 <SidebarMenuButton asChild>
                   <a href="/logout">
-                    {/* <item.icon /> */}
+                    <LogOut />
                     <span>Logout</span>
                   </a>
                 </SidebarMenuButton>

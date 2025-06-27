@@ -222,8 +222,9 @@ export default function Chat({
                 body: JSON.stringify(param),
             })
             console.log("api slug response", response)
+            type SlugResponse = { slug?: string; status?: number }
             if (response.ok) {
-                const data = await response.json()
+                const data: SlugResponse = await response.json() as SlugResponse
                 const slug = data.slug?.trim()
                 console.log("slug response text:", slug)
                 if (slug !== "" && slug != "\"\"")

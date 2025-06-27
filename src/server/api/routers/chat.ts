@@ -29,7 +29,7 @@ export const chatRouter = createTRPCRouter({
             const chats = await getChatsDB(ctx.user.id)
 
             for (const id of chats) {
-                const slug = await getChatSlugDB(id) as string
+                const slug = await getChatSlugDB(id)
                 chatSlugMap.push({ id, slug })
             }
             return chatSlugMap
@@ -84,7 +84,7 @@ export const chatRouter = createTRPCRouter({
     getSlug: protectedProcedure
         .input(z.object({ chatId: z.string() }))
         .query(async ({ ctx, input }) => {
-            const slug = await getChatSlugDB(input.chatId) as string
+            const slug = await getChatSlugDB(input.chatId)
             return slug
         })
 })

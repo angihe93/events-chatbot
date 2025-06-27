@@ -19,7 +19,7 @@ export default function LogoutPage() {
             }
             router.push("/login");
         };
-        handleLogout();
+        void handleLogout();
     }, [router])
 
     return <></>

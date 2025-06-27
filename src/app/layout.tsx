@@ -52,7 +52,16 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
 
   const sessionContext = useSession(); // Access session from context
-  const session = sessionContext?.session;
+  type Session = {
+    user: {
+      id: string;
+      name: string;
+      email: string;
+    };
+    expires: string;
+  }
+  /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+  // const session: Session = sessionContext?.session;
 
   return (
     <html lang="en" className={`${geist.variable}`}>
