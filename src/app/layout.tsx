@@ -8,33 +8,10 @@ import { Geist } from "next/font/google";
 import { api, TRPCReactProvider } from "~/trpc/react";
 
 import { Toaster } from "~/components/ui/sonner"
-import { SidebarProvider, SidebarTrigger } from "~/components/ui/sidebar";
-import { AppSidebar } from "~/components/app-sidebar";
 // import { auth } from "~/lib/auth";
 // import { headers } from "next/headers";
-import { SessionProvider, useSession } from "~/context/SessionContext";
+import { SessionProvider } from "~/context/SessionContext";
 import { ChatProvider } from "~/context/ChatContext";
-
-// import { authClient } from "~/lib/auth-client"
-// import { useEffect, useState } from "react";
-
-// import { AppSidebar } from "~/components/app-sidebar"
-// import {
-//   Breadcrumb,
-//   BreadcrumbItem,
-//   BreadcrumbLink,
-//   BreadcrumbList,
-//   BreadcrumbPage,
-//   BreadcrumbSeparator,
-// } from "~/components/ui/breadcrumb"
-// import { Separator } from "~/components/ui/separator"
-// import {
-//   SidebarInset,
-//   SidebarProvider,
-//   SidebarTrigger,
-// } from "~/components/ui/sidebar"
-
-
 
 // export const metadata: Metadata = {
 //   title: "Create T3 App",
@@ -51,17 +28,6 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
 
-  const sessionContext = useSession(); // Access session from context
-  type Session = {
-    user: {
-      id: string;
-      name: string;
-      email: string;
-    };
-    expires: string;
-  }
-  /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-  // const session: Session = sessionContext?.session;
 
   return (
     <html lang="en" className={`${geist.variable}`}>
@@ -69,12 +35,7 @@ export default function RootLayout({
         <SessionProvider>
           <ChatProvider>
             <TRPCReactProvider>
-              <SidebarProvider defaultOpen={false}>
-                <AppSidebar />
-                {/* {session?.user && <AppSidebar />} Render sidebar only if user is logged in */}
-                <SidebarTrigger />
-                <div style={{ flex: 1 }}>{children}</div>
-              </SidebarProvider>
+              <div style={{ flex: 1 }}>{children}</div>
             </TRPCReactProvider>
           </ChatProvider>
         </SessionProvider>
