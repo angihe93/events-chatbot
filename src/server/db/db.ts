@@ -49,6 +49,11 @@ export async function getChatTimeDB(id: string): Promise<Date> {
     return getTime[0].createdAt
 }
 
+export async function hasMessagesDB(id: string): Promise<boolean> {
+    const result = await db.select().from(chat_messages).where(eq(chat_messages.chatId, id));
+    return result.length > 0;
+}
+
 export async function setChatSlugDB(id: string, slug: string): Promise<void> {
     try {
         const cleanedSlug = slug.trim().replace(/['"]+/g, "") // remove single and double quotes

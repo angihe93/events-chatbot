@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { createTRPCRouter, publicProcedure, protectedProcedure } from "~/server/api/trpc";
-import { getChatsDB, getChatSlugDB, getChatTimeDB, loadChatDB } from "~/server/db/db";
+import { getChatsDB, getChatSlugDB, getChatTimeDB, hasMessagesDB, loadChatDB } from "~/server/db/db";
 import { chats } from "~/server/db/schema";
 import { generateId } from 'ai'
 import { type Message } from '@ai-sdk/react'
@@ -50,6 +50,24 @@ export const chatRouter = createTRPCRouter({
                 chatTimeMap.push({ id, createdAt })
             }
             return chatTimeMap
+        }),
+
+    listWithLength: protectedProcedure
+        .input(z.void())
+        .query(async ({ ctx, input }) => {
+            type ChatLengthMap = {
+                id: string;
+                // length: number; // number of messages in this chat, if 0, don't show in side bar
+                hasMessages: boolean
+            }
+            const chatLengthMap: ChatLengthMap[] = []
+            const chats = await getChatsDB(ctx.user.id)
+
+            for (const id of chats) {
+                const hasMessages = await hasMessagesDB(id)
+                chatLengthMap.push({ id, hasMessages })
+            }
+            return chatLengthMap
         }),
 
     create: protectedProcedure

@@ -2,9 +2,6 @@
 
 import * as React from "react"
 import { Bookmark, ChevronRight, LogOut, PencilLine } from "lucide-react"
-
-import { SearchForm } from "~/components/search-form"
-import { VersionSwitcher } from "~/components/version-switcher"
 import {
   Collapsible,
   CollapsibleContent,
@@ -72,43 +69,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: chatTimeMap = [] } = api.chat.listWithTime.useQuery();
   // console.log("chatTimeMap", chatTimeMap)
 
+  const { data: chatLengthMap = [] } = api.chat.listWithLength.useQuery();
+
   type ChatItem = { id: string; title: string }
 
-  const chatItems: ChatItem[] = chatTimeMap?.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).map((i) => (
-    { id: i.id, title: chatSlugMap.find((c) => c.id === i.id)?.slug ? chatSlugMap.find((c) => c.id === i.id)?.slug : `Chat created at ${chatTimeMap.find((c) => c.id === i.id)?.createdAt.toLocaleString()}` } as ChatItem
-  ))
-
-  // want to refetch chats data after creating new chat so sidebar can update immediately
-  // but can't seem to do useQuery inside useEffect
-  // const [chatSlugMap, setChatSlugMap] = useState<ChatSlugMap[]>([])
-  // const [chatTimeMap, setChatTimeMap] = useState<ChatTimeMap[]>([])
-  // const [chatItems, setChatItems] = useState<ChatItem[]>([])
-  // useEffect(() => {
-  //   const fetchChats = async () => {
-  //     const { data } = api.chat.listWithSlug.useQuery()
-  //     if (data) {
-  //       setChatSlugMap(data);
-  //     }
-  //     const timeData: ChatTimeMap[] = api.chat.listWithTime.useQuery().data ?? []
-  //     setChatTimeMap(timeData)
-  //     const chatItems: ChatItem[] = chatTimeMap?.sort((a, b) => b.createdAt!.getTime() - a.createdAt!.getTime()).map((i) => (
-  //       { id: i.id, title: chatSlugMap.find((c) => c.id === i.id)?.slug ? chatSlugMap.find((c) => c.id === i.id)?.slug : `Chat created at ${chatTimeMap.find((c) => c.id === i.id)?.createdAt.toLocaleString()}` } as ChatItem
-  //     ))
-  //     setChatItems(chatItems)
-  //   }
-  //   fetchChats()
-  //   // const { data } = api.chat.listWithSlug.useQuery()
-  //   // if (data) {
-  //   //   setChatSlugMap(data);
-  //   // }
-  //   // const timeData: ChatTimeMap[] = api.chat.listWithTime.useQuery().data ?? []
-  //   // setChatTimeMap(timeData)
-  //   // const chatItems: ChatItem[] = chatTimeMap?.sort((a, b) => b.createdAt!.getTime() - a.createdAt!.getTime()).map((i) => (
-  //   //   { id: i.id, title: chatSlugMap.find((c) => c.id === i.id)?.slug ? chatSlugMap.find((c) => c.id === i.id)?.slug : `Chat created at ${chatTimeMap.find((c) => c.id === i.id)?.createdAt.toLocaleString()}` } as ChatItem
-  //   // ))
-  //   // setChatItems(chatItems)
-  // }, [selectedChatContext]);
-
+  const chatItems: ChatItem[] = chatTimeMap
+    ?.filter((chat) => { // only show chat in side bar if it has messages
+      const chatLengthEntry = chatLengthMap.find((entry) => entry.id === chat.id);
+      return chatLengthEntry?.hasMessages === true;
+    })
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+    .map((i) => ({
+      id: i.id,
+      title: chatSlugMap.find((c) => c.id === i.id)?.slug || `Chat created at ${i.createdAt.toLocaleString()}`,
+    }));
 
   const data = {
     versions: ["0.0.1"],
@@ -129,19 +103,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     }
   });
 
-  // TODO: when createChat is clicked, fetch chat ids, slugs again and update sidebar
-  // useEffect(() => {
-
-  // }, [selectedChatContext])
 
   return (
     <Sidebar {...props}>
       <SidebarHeader>
-        {/* <VersionSwitcher
-          versions={data.versions}
-          defaultVersion={data.versions[0] ?? ""}
-        /> */}
-        {/* <SearchForm /> */}
         {/* TODO: app logo and name go here */}
       </SidebarHeader>
       <SidebarContent className="gap-0">
