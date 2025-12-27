@@ -2,10 +2,9 @@
 
 import { createIdGenerator } from 'ai';
 import { type Message, useChat } from '@ai-sdk/react';
-import { deleteLastMessage, deleteMessage } from '~/lib/data';
+import { deleteLastMessage } from '~/lib/data';
 import { useEffect, useRef } from 'react';
-// import getEvents from '~/lib/eventsApi';
-import { CircleX, RotateCcw } from 'lucide-react';
+import { RotateCcw } from 'lucide-react';
 import ReactMarkdown from "react-markdown"
 
 // Simple Spinner component, can replace later
@@ -264,13 +263,6 @@ export default function Chat({
                                         return null;
                                 }
                             })}
-                            {status === 'ready' &&
-                                <div className='flex justify-end'>
-                                    <button onClick={() => { void deleteMessage(message.id); setMessages(messages.filter(m => m.id !== message.id)) }}
-                                        className="p-1 flex items-center gap-1 hover:text-red-700 text-sm">
-                                        <CircleX />
-                                        Delete
-                                    </button></div>}
                             <br />
                         </div>
                     ))}
